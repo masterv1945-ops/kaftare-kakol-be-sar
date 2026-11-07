@@ -881,7 +881,7 @@ body{overscroll-behavior:none}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۱</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۲</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -2820,12 +2820,17 @@ function showIncoming(row) {
   clearTimeout(incTimer); incTimer = setTimeout(() => { if (incoming && incoming.id === row.id) hideIncoming(); }, 45000);
 }
 let incTimer = null;
-function hideIncoming() { clearTimeout(incTimer); incoming = null; $('#incoming').hidden = true; ringStop(); }
+const dismissedCalls = new Set();
+function hideIncoming() { clearTimeout(incTimer); if (incoming) dismissedCalls.add(incoming.id); incoming = null; $('#incoming').hidden = true; ringStop(); }
 async function checkRinging() {
   const since = new Date(Date.now() - 40000).toISOString();
   const { data } = await sb.from('calls').select('*').eq('status', 'ringing').gt('started_at', since).neq('caller_id', me.id).order('started_at', { ascending: false }).limit(1);
-  if (data && data[0]) showIncoming(data[0]);
+  if (data && data[0] && !dismissedCalls.has(data[0].id) && !incoming && !call) showIncoming(data[0]);
 }
+// safety net: if the realtime socket is blocked or asleep, still notice incoming calls
+setInterval(() => { if (me && !call && !incoming && !document.hidden) checkRinging(); }, 3000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && me && !call && !incoming) checkRinging(); });
+window.addEventListener('online', () => { if (me && !call && !incoming) checkRinging(); });
 $('#incNo').onclick = async () => { const row = incoming; hideIncoming(); if (row && !row.is_group) await sb.rpc('decline_call', { call: row.id }); };
 $('#incYes').onclick = async () => { const row = incoming; if (!row) return; hideIncoming(); await joinCall(row); };
 
