@@ -309,7 +309,7 @@
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۸</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۹</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -2200,7 +2200,7 @@ async function syncParticipants() {
 const c = call; if (!c || c.syncing) return;
 c.syncing = true;
 try {
-const { data, error } = await sb.from('call_participants').select('user_id,joined_at,left_at,screen_sharing').eq('call_id', c.id);
+const { data, error } = await sb.from('call_participants').select('user_id,joined_at,left_at,is_screen_sharing').eq('call_id', c.id);
 if (error || !data || call !== c) return;
 const mine = data.find(r => r.user_id === me.id); if (!mine) return;
 c.myJoined = mine.joined_at;
@@ -2212,7 +2212,7 @@ if (c.peers.has(r.user_id)) removePeer(r.user_id);
 continue;
 }
 const peer = getPeer(r.user_id);
-{ const t = tileOf(r.user_id); if (t) { t.classList.toggle('shr', !!r.screen_sharing); let b = t.querySelector('.shb'); if (r.screen_sharing && !b) { b = document.createElement('span'); b.className = 'shb'; b.textContent = 'اشتراک صفحه'; t.appendChild(b); } else if (!r.screen_sharing && b) b.remove(); } }
+{ const t = tileOf(r.user_id); if (t) { t.classList.toggle('shr', !!r.is_screen_sharing); let b = t.querySelector('.shb'); if (r.is_screen_sharing && !b) { b = document.createElement('span'); b.className = 'shb'; b.textContent = 'اشتراک صفحه'; t.appendChild(b); } else if (!r.is_screen_sharing && b) b.remove(); } }
 if (peer.pc) continue;
 const theyLater = r.joined_at > c.myJoined || (r.joined_at === c.myJoined && r.user_id > me.id);
 if (!theyLater) sendOffer(peer, false).catch(e => diag('offer: ' + (e && e.message || e)));
