@@ -587,6 +587,12 @@ body{overscroll-behavior:none}
   .brand .logo{width:120px;height:120px}
 }
 
+/* ---- screen share ---- */
+.tile.shr video{object-fit:contain;background:#000;transform:none!important}
+.tile.shr{background:#000}
+.tile .shb{position:absolute;top:8px;inset-inline-start:10px;z-index:2;font-size:11.5px;background:var(--accent);color:var(--accent-ink);padding:0 9px;border-radius:999px;font-weight:700}
+#btnShare.on{background:var(--accent);color:var(--accent-ink)}
+#tiles.solo .tile.me.shr{width:min(200px,38vw);aspect-ratio:16/10}
 /* ---- v13 polish ---- */
 :root{--r-lg:20px;--ease:cubic-bezier(.2,.8,.2,1)}
 body{background:radial-gradient(1200px 600px at 100% -10%,color-mix(in oklab,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 110%,color-mix(in oklab,var(--sheen,#7a6ae0) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
@@ -902,7 +908,7 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۳</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۴</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -962,6 +968,8 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
   <div id="callbar">
     <button class="cb" id="btnMute" type="button" aria-label="میکروفون"></button>
     <button class="cb" id="btnCam" type="button" aria-label="دوربین"></button>
+    <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
+    <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
     <button class="cb hang" id="btnHang" type="button" aria-label="قطع تماس"></button>
   </div>
 </div>
@@ -1014,6 +1022,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICONS = {
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  screen: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M9 10l3-3 3 3M12 7v6"/>',
   video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
   videoOff: '<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/>',
   mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>',
@@ -2515,6 +2524,7 @@ function showCallUI() {
   $('#btnCam').hidden = call.kind !== 'video';
   $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
   $('#btnCam').className = 'cb'; $('#btnCam').innerHTML = icon('video');
+  { const b = $('#btnShare'); b.className = 'cb'; b.innerHTML = icon('screen'); b.hidden = !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
   $('#callinfo').hidden = false;
   $('#tiles').innerHTML = '';
   $('#tiles').classList.toggle('audio', call.kind !== 'video');
@@ -2550,7 +2560,7 @@ function attachStream(peer) {
   const t = tileOf(peer.uid); if (!t || !peer.stream) return;
   const v = t.querySelector('video');
   if (v.srcObject !== peer.stream) v.srcObject = peer.stream;
-  t.classList.toggle('novid', !(call.kind === 'video' && peer.stream.getVideoTracks().length));
+  t.classList.toggle('novid', !peer.stream.getVideoTracks().some(x => x.readyState === 'live' && !x.muted));
   v.play().catch(() => {});
 }
 function renderDiag() {
@@ -2613,7 +2623,7 @@ function opusLow(sdp) {
   } catch (_) { return sdp; }
 }
 async function setVideoQuality(pc, level) {   // level: 0 normal, 1 low, 2 very low
-  const cfg = [{ b: 400000, f: 20, s: 1 }, { b: 130000, f: 12, s: 2 }, { b: 60000, f: 8, s: 3 }][level];
+  const cfg = (call && call.share ? [{ b: 1200000, f: 15, s: 1 }, { b: 500000, f: 10, s: 1.5 }, { b: 200000, f: 5, s: 2 }] : [{ b: 400000, f: 20, s: 1 }, { b: 130000, f: 12, s: 2 }, { b: 60000, f: 8, s: 3 }])[level];
   for (const sn of pc.getSenders()) {
     if (!sn.track) continue;
     try {
@@ -2636,11 +2646,13 @@ function makePC(peer) {
   const pc = new RTCPeerConnection(ICE_CFG);
   peer.pc = pc; peer.cand = { host: 0, srflx: 0, relay: 0 };
   call.stream.getTracks().forEach(t => pc.addTrack(t, call.stream));
+  if (call.share) applyShare(pc, false);
   setVideoQuality(pc, call.vq || 0);
   pc.ontrack = e => {
     if (peer.pc !== pc) return;
     peer.stream = peer.stream || new MediaStream();
     if (!peer.stream.getTracks().includes(e.track)) peer.stream.addTrack(e.track);
+    e.track.addEventListener('mute', () => attachStream(peer)); e.track.addEventListener('unmute', () => attachStream(peer));
     attachStream(peer);
   };
   pc.onicecandidate = e => {
@@ -2677,7 +2689,7 @@ async function sendOffer(peer, restart) {
   peer.offerer = true; peer.making = true;
   const pc = peer.pc;
   try {
-    const offer = await pc.createOffer(restart ? { iceRestart: true } : undefined);
+    const offer = await pc.createOffer(restart === true ? { iceRestart: true } : undefined);
     await pc.setLocalDescription({ type: offer.type, sdp: opusLow(offer.sdp) });
     await gatherDone(pc, 1200);
     if (peer.pc !== pc || !call) return;
@@ -2805,7 +2817,7 @@ async function syncParticipants() {
   const c = call; if (!c || c.syncing) return;
   c.syncing = true;
   try {
-    const { data, error } = await sb.from('call_participants').select('user_id,joined_at,left_at').eq('call_id', c.id);
+    const { data, error } = await sb.from('call_participants').select('user_id,joined_at,left_at,screen_sharing').eq('call_id', c.id);
     if (error || !data || call !== c) return;
     const mine = data.find(r => r.user_id === me.id); if (!mine) return;
     c.myJoined = mine.joined_at;
@@ -2817,6 +2829,7 @@ async function syncParticipants() {
         continue;
       }
       const peer = getPeer(r.user_id);
+      { const t = tileOf(r.user_id); if (t) { t.classList.toggle('shr', !!r.screen_sharing); let b = t.querySelector('.shb'); if (r.screen_sharing && !b) { b = document.createElement('span'); b.className = 'shb'; b.textContent = 'اشتراک صفحه'; t.appendChild(b); } else if (!r.screen_sharing && b) b.remove(); } }
       if (peer.pc) continue;
       const theyLater = r.joined_at > c.myJoined || (r.joined_at === c.myJoined && r.user_id > me.id);
       if (!theyLater) sendOffer(peer, false).catch(e => diag('offer: ' + (e && e.message || e)));
@@ -2880,6 +2893,7 @@ async function endCall(reason) {
 }
 function cleanupCall(msg) {
   if (!call) return;
+  try { if (call.share) { call.share.ds.getTracks().forEach(t => t.stop()); call.share.ctx && call.share.ctx.close(); } } catch (_) {}
   const c = call; call = null;
   clearTimeout(c.timer); clearInterval(c.tick); clearInterval(c.poll); clearInterval(c.qIv);
   c.peers.forEach(p => { try { closePC(p); } catch (_) {} });
@@ -2967,9 +2981,79 @@ $('#btnCam').onclick = () => {
   syncMedia();
 };
 $('#callui').addEventListener('click', () => document.querySelectorAll('#tiles video').forEach(v => v.play().catch(() => {})));
+/* ---------- screen share (with system audio) ---------- */
+function applyShare(pc, reneg) {   // put the shared screen (and mixed audio) on this connection; returns true if renegotiation is needed
+  const sh = call.share; let need = false;
+  for (const sn of pc.getSenders()) {
+    if (sn.track && sn.track.kind === 'audio' && sh.mixTrack) sn.replaceTrack(sh.mixTrack).catch(() => {});
+  }
+  const vs = pc.getSenders().find(x => x.track && x.track.kind === 'video');
+  if (vs) vs.replaceTrack(sh.track).catch(() => {});
+  else {
+    const tr = pc.getTransceivers().find(x => x.receiver && x.receiver.track && x.receiver.track.kind === 'video' && !x.sender.track);
+    if (tr) { tr.sender.replaceTrack(sh.track).catch(() => {}); try { tr.direction = 'sendrecv'; } catch (_) {} }
+    else pc.addTrack(sh.track, call.stream);
+    need = true;
+  }
+  setVideoQuality(pc, 0);
+  return need;
+}
+async function startShare() {
+  if (!call || call.share) return;
+  let ds;
+  try {
+    ds = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1600 }, height: { ideal: 900 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, systemAudio: 'include', selfBrowserSurface: 'exclude' });
+  } catch (e) { if (e && e.name !== 'NotAllowedError') toast('اشتراک صفحه در این مرورگر ممکن نشد'); return; }
+  const track = ds.getVideoTracks()[0]; if (!track) return;
+  try { track.contentHint = 'detail'; } catch (_) {}
+  const sh = { ds, track, mixTrack: null, ctx: null };
+  const sysA = ds.getAudioTracks()[0];
+  if (sysA) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(), dest = ctx.createMediaStreamDestination();
+      const mic = call.stream.getAudioTracks()[0];
+      if (mic) ctx.createMediaStreamSource(new MediaStream([mic])).connect(dest);
+      const g = ctx.createGain(); g.gain.value = .9;
+      ctx.createMediaStreamSource(new MediaStream([sysA])).connect(g); g.connect(dest);
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      sh.ctx = ctx; sh.mixTrack = dest.stream.getAudioTracks()[0];
+    } catch (_) {}
+  } else toast('صدای سیستم همراه صفحه نبود (هنگام انتخاب، گزینهٔ «Share audio» را بزنید)');
+  call.share = sh;
+  track.addEventListener('ended', () => { if (call && call.share === sh) stopShare(); });
+  call.peers.forEach(peer => { if (peer.pc && applyShare(peer.pc, true) && peer.descSent) sendOffer(peer, 'reneg').catch(e => diag('share: ' + (e && e.message || e))); });
+  const mt = tileOf('me'); if (mt) { mt.querySelector('video').srcObject = new MediaStream([track]); mt.classList.remove('novid'); mt.classList.add('shr'); }
+  const b = $('#btnShare'); b.classList.add('on');
+  syncMedia();
+}
+function stopShare() {
+  const c = call; if (!c || !c.share) return;
+  const sh = c.share; c.share = null;
+  const cam = c.stream.getVideoTracks()[0], mic = c.stream.getAudioTracks()[0];
+  c.peers.forEach(peer => {
+    const pc = peer.pc; if (!pc) return;
+    let need = false;
+    for (const sn of pc.getSenders()) {
+      if (!sn.track) continue;
+      if (sn.track.kind === 'audio' && mic) sn.replaceTrack(mic).catch(() => {});
+      else if (sn.track.kind === 'video') {
+        if (cam) sn.replaceTrack(cam).catch(() => {});
+        else { try { pc.removeTrack(sn); need = true; } catch (_) {} }
+      }
+    }
+    setVideoQuality(pc, c.vq || 0);
+    if (need && peer.descSent) sendOffer(peer, 'reneg').catch(() => {});
+  });
+  try { sh.ds.getTracks().forEach(t => t.stop()); } catch (_) {}
+  try { sh.ctx && sh.ctx.close(); } catch (_) {}
+  const mt = tileOf('me'); if (mt) { const v = mt.querySelector('video'); v.srcObject = c.stream; mt.classList.remove('shr'); if (c.kind !== 'video') mt.classList.add('novid'); }
+  const b = $('#btnShare'); if (b) b.classList.remove('on');
+  if (call === c) syncMedia();
+}
+$('#btnShare').onclick = () => { if (call) (call.share ? stopShare() : startShare()); };
 function syncMedia() {
   const a = call.stream.getAudioTracks()[0], v = call.stream.getVideoTracks()[0];
-  sb.rpc('set_call_media', { call: call.id, muted: !(a && a.enabled), video_on: !!(v && v.enabled), screen_sharing: false }).then(() => {});
+  sb.rpc('set_call_media', { call: call.id, muted: !(a && a.enabled), video_on: !!(v && v.enabled), screen_sharing: !!call.share }).then(() => {});
 }
 // best effort: leave the call when the tab is closed
 addEventListener('pagehide', () => {
