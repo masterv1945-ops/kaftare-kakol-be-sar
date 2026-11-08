@@ -586,6 +586,27 @@ body{overscroll-behavior:none}
   .pg-sheen{animation:none}
   .brand .logo{width:120px;height:120px}
 }
+
+/* ---- v13 polish ---- */
+:root{--r-lg:20px;--ease:cubic-bezier(.2,.8,.2,1)}
+body{background:radial-gradient(1200px 600px at 100% -10%,color-mix(in oklab,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 110%,color-mix(in oklab,var(--sheen,#7a6ae0) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
+#msgs{background:linear-gradient(180deg,transparent,color-mix(in oklab,var(--accent) 4%,transparent))}
+.m{animation:mIn .22s var(--ease) both}
+@keyframes mIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.row{transition:background .15s,transform .15s var(--ease)}
+.row:active,.btn:active,.ib:active,.cb:active{transform:scale(.96)}
+.row.on,.row.act{background:color-mix(in oklab,var(--accent) 12%,var(--panel))}
+.card,#modal .card{border-radius:var(--r-lg)}
+#modal .card{animation:pop .22s var(--ease) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.btn:hover{filter:brightness(1.06)}
+input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 22%,transparent);outline:0}
+*{scrollbar-width:thin;scrollbar-color:color-mix(in oklab,var(--ink-2) 40%,transparent) transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:color-mix(in oklab,var(--ink-2) 35%,transparent);border-radius:8px}
+.badge{box-shadow:0 2px 8px color-mix(in oklab,var(--accent) 45%,transparent)}
+#callui{background:radial-gradient(900px 500px at 50% 0,color-mix(in oklab,var(--accent) 35%,#0b1216),#080d10 70%)}
+.cb{transition:transform .15s var(--ease),background .15s}
+@media (prefers-reduced-motion:reduce){.m,#modal .card{animation:none}}
 </style>
 </head>
 <body>
@@ -881,7 +902,7 @@ body{overscroll-behavior:none}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۲</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۳</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -980,8 +1001,9 @@ body{overscroll-behavior:none}
 /* ================= config ================= */
 const SUPABASE_URL = 'https://wqdcnnjccvvxeeqhnipe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZGNubmpjY3Z2eGVlcWhuaXBlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMDEwMDIsImV4cCI6MjEwODc3NzAwMn0.064dMBq8-myAY-snrDhk2OUxN0nFKPVegAzLpU4Jclw';
-const PUBLIC_TURN = [{ urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }]; // free public relay (best effort)
-const DEFAULT_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }, { urls: 'stun:stun.cloudflare.com:3478' }].concat(PUBLIC_TURN);
+const PUBLIC_TURN = [{ urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443', 'turn:openrelay.metered.ca:443?transport=tcp', 'turns:openrelay.metered.ca:443?transport=tcp', 'turn:openrelay.metered.ca:80?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' }]; // free public relay (best effort)
+const DEFAULT_ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun.l.google.com:3478'] }, { urls: ['stun:stun.cloudflare.com:3478', 'stun:global.stun.twilio.com:3478'] }].concat(PUBLIC_TURN);
+const RTC_OPTS = { iceCandidatePoolSize: 4, bundlePolicy: 'max-bundle', rtcpMuxPolicy: 'require' };
 let authTok = '';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 addEventListener('error', e => { try { toast('خطای برنامه: ' + (e.message || '')); } catch (_) {} });
@@ -2440,13 +2462,13 @@ let call = null;       // my active / outgoing call
 let incoming = null;   // ringing call shown to me
 let starting = false;
 let ringIv = null, ringCtx = null;
-let iceP = null, ICE_CFG = { iceServers: DEFAULT_ICE };
+let iceP = null, ICE_CFG = Object.assign({ iceServers: DEFAULT_ICE }, RTC_OPTS);
 
 const ensureIce = () => iceP || (iceP = (async () => {
   try {
     const r = await Promise.race([sb.functions.invoke('ice-servers'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3500))]);
     const list = r && r.data && r.data.iceServers;
-    if (list && list.length) ICE_CFG = { iceServers: r.data.custom ? list : list.concat(PUBLIC_TURN) };
+    if (list && list.length) ICE_CFG = Object.assign({ iceServers: r.data.custom ? list : list.concat(PUBLIC_TURN) }, RTC_OPTS);
   } catch (_) {}
 })());
 
@@ -2467,12 +2489,13 @@ function ringStart() {
 function ringStop() { clearInterval(ringIv); ringIv = null; }
 
 async function getMedia(kind) {
-  try {
-    return await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: kind === 'video' ? { facingMode: 'user', width: { ideal: 960 }, height: { ideal: 540 } } : false });
-  } catch (e) {
-    toast(kind === 'video' ? 'دسترسی به دوربین یا میکروفون داده نشد' : 'دسترسی به میکروفون داده نشد');
-    return null;
-  }
+  const aud = { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 };
+  const tries = kind === 'video'
+    ? [{ audio: aud, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 20, max: 24 } } }, { audio: aud, video: true }]
+    : [{ audio: aud }, { audio: true }];
+  for (const c of tries) { try { return await navigator.mediaDevices.getUserMedia(c); } catch (_) {} }
+  toast(kind === 'video' ? 'دسترسی به دوربین یا میکروفون داده نشد' : 'دسترسی به میکروفون داده نشد');
+  return null;
 }
 
 /* ---------- call screen ---------- */
@@ -2560,7 +2583,7 @@ function onSignal(row) {
 function getPeer(uid) {
   let p = call.peers.get(uid);
   if (p) return p;
-  p = { uid, sid: null, pc: null, polite: me.id < uid, making: false, offerer: false, pendingIce: [], outIce: [], descSent: false, q: Promise.resolve(), stream: null, connTimer: null, restarted: false, cand: { host: 0, srflx: 0, relay: 0 } };
+  p = { uid, sid: null, pc: null, polite: me.id < uid, making: false, offerer: false, pendingIce: [], outIce: [], descSent: false, q: Promise.resolve(), stream: null, connTimer: null, restarted: false, restarts: 0, cand: { host: 0, srflx: 0, relay: 0 } };
   call.peers.set(uid, p);
   ensureTile(uid); layoutTiles();
   clearTimeout(call.timer);
@@ -2568,7 +2591,7 @@ function getPeer(uid) {
   return p;
 }
 function closePC(peer) {
-  clearTimeout(peer.connTimer);
+  clearTimeout(peer.connTimer); clearTimeout(peer.kick); clearTimeout(peer.dis);
   if (peer.pc) { const pc = peer.pc; peer.pc = null; try { pc.close(); } catch (_) {} }
   peer.stream = null; peer.descSent = false; peer.outIce = []; peer.pendingIce = []; peer.making = false; peer.offerer = false;
   const t = tileOf(peer.uid); if (t) { t.querySelector('video').srcObject = null; t.classList.add('novid'); }
@@ -2579,11 +2602,41 @@ function removePeer(uid) {
   const t = tileOf(uid); if (t) t.remove();
   renderDiag();
 }
+/* low-bandwidth tuning: Opus 24 kbps + FEC + DTX, capped video bitrate */
+function opusLow(sdp) {
+  try {
+    const m = /a=rtpmap:(\d+) opus\/48000/i.exec(sdp); if (!m) return sdp;
+    const pt = m[1], extra = 'useinbandfec=1;usedtx=1;stereo=0;maxaveragebitrate=24000;maxplaybackrate=16000';
+    const re = new RegExp('(a=fmtp:' + pt + ' )([^\\r\\n]*)');
+    if (re.test(sdp)) return sdp.replace(re, (_, a, b) => a + b.replace(/(useinbandfec|usedtx|stereo|maxaveragebitrate|maxplaybackrate)=[^;]*;?/g, '').replace(/;$/, '') + (b.trim() ? ';' : '') + extra);
+    return sdp.replace(m[0], m[0] + '\r\na=fmtp:' + pt + ' ' + extra);
+  } catch (_) { return sdp; }
+}
+async function setVideoQuality(pc, level) {   // level: 0 normal, 1 low, 2 very low
+  const cfg = [{ b: 400000, f: 20, s: 1 }, { b: 130000, f: 12, s: 2 }, { b: 60000, f: 8, s: 3 }][level];
+  for (const sn of pc.getSenders()) {
+    if (!sn.track) continue;
+    try {
+      const pr = sn.getParameters(); if (!pr.encodings || !pr.encodings.length) pr.encodings = [{}];
+      if (sn.track.kind === 'video') { pr.encodings[0].maxBitrate = cfg.b; pr.encodings[0].maxFramerate = cfg.f; pr.encodings[0].scaleResolutionDownBy = cfg.s; pr.degradationPreference = 'maintain-framerate'; }
+      else { pr.encodings[0].maxBitrate = 32000; pr.encodings[0].priority = 'high'; pr.encodings[0].networkPriority = 'high'; }
+      await sn.setParameters(pr);
+    } catch (_) {}
+  }
+}
+function restartIce(peer, why) {
+  if (!call || !peer.pc || peer.making) return;
+  if (peer.restarts >= 6) { peerFailed(peer); return; }
+  peer.restarts++; setTileStatus(peer, 'تلاش دوباره…');
+  try { peer.pc.restartIce && peer.pc.restartIce(); } catch (_) {}
+  sendOffer(peer, true).catch(e => diag('restart: ' + (e && e.message || e)));
+}
 function makePC(peer) {
   closePC(peer);
   const pc = new RTCPeerConnection(ICE_CFG);
   peer.pc = pc; peer.cand = { host: 0, srflx: 0, relay: 0 };
   call.stream.getTracks().forEach(t => pc.addTrack(t, call.stream));
+  setVideoQuality(pc, call.vq || 0);
   pc.ontrack = e => {
     if (peer.pc !== pc) return;
     peer.stream = peer.stream || new MediaStream();
@@ -2600,7 +2653,8 @@ function makePC(peer) {
   };
   pc.oniceconnectionstatechange = () => { if (peer.pc === pc) { renderDiag(); onPeerState(peer); } };
   pc.onconnectionstatechange = () => { if (peer.pc === pc) onPeerState(peer); };
-  peer.connTimer = setTimeout(() => peerTimeout(peer), 30000);
+  peer.connTimer = setTimeout(() => peerTimeout(peer), 75000);
+  clearTimeout(peer.kick); peer.kick = setTimeout(() => { if (peer.pc === pc && !['connected', 'completed'].includes(pc.iceConnectionState)) restartIce(peer); }, 12000);
   return pc;
 }
 const gatherDone = (pc, ms) => new Promise(res => {
@@ -2624,8 +2678,8 @@ async function sendOffer(peer, restart) {
   const pc = peer.pc;
   try {
     const offer = await pc.createOffer(restart ? { iceRestart: true } : undefined);
-    await pc.setLocalDescription(offer);
-    await gatherDone(pc, 2500);
+    await pc.setLocalDescription({ type: offer.type, sdp: opusLow(offer.sdp) });
+    await gatherDone(pc, 1200);
     if (peer.pc !== pc || !call) return;
     await sendSignal('offer', peer.uid, descOf(pc));
     peer.descSent = true; flushOut(peer);
@@ -2650,8 +2704,9 @@ async function handleSignal(peer, row) {
     const pc = peer.pc;
     await pc.setRemoteDescription(d);
     await flushIce(peer);
-    await pc.setLocalDescription(await pc.createAnswer());
-    await gatherDone(pc, 2000);
+    const ans = await pc.createAnswer();
+    await pc.setLocalDescription({ type: ans.type, sdp: opusLow(ans.sdp) });
+    await gatherDone(pc, 1200);
     if (peer.pc !== pc || !call) return;
     await sendSignal('answer', peer.uid, descOf(pc));
     peer.descSent = true; flushOut(peer);
@@ -2667,27 +2722,68 @@ async function handleSignal(peer, row) {
   }
 }
 
+/* adaptive quality: watch loss/RTT; shrink video, then drop it to protect the voice */
+function startQuality() {
+  const c = call; clearInterval(c.qIv); c.qBad = 0; c.qGood = 0; c.vq = c.vq || 0;
+  const prev = new Map();
+  c.qIv = setInterval(async () => {
+    if (call !== c) return;
+    let worst = 0, rtt = 0;
+    for (const p of c.peers.values()) {
+      if (!p.pc) continue;
+      try {
+        const st = await p.pc.getStats(); let rec = 0, lost = 0;
+        st.forEach(r => {
+          if (r.type === 'inbound-rtp' && r.kind === 'audio') { rec += r.packetsReceived || 0; lost += r.packetsLost || 0; }
+          if (r.type === 'candidate-pair' && r.nominated && r.currentRoundTripTime) rtt = Math.max(rtt, r.currentRoundTripTime);
+        });
+        const o = prev.get(p.uid) || { rec: 0, lost: 0 }; prev.set(p.uid, { rec, lost });
+        const dr = rec - o.rec, dl = lost - o.lost;
+        if (dr + dl > 20) worst = Math.max(worst, Math.max(0, dl) / (dr + dl));
+      } catch (_) {}
+    }
+    const lvl = (worst >= .2 || rtt > 1.2) ? 3 : (worst >= .07 || rtt > .6) ? 2 : (worst >= .02 || rtt > .3) ? 1 : 0;
+    c.net = lvl; setCallStatusSuffix();
+    if (lvl >= 2) { c.qBad++; c.qGood = 0; } else if (lvl === 0) { c.qGood++; c.qBad = 0; } else { c.qBad = 0; c.qGood = 0; }
+    if (c.kind !== 'video') return;
+    const vt = c.stream.getVideoTracks()[0];
+    if (c.qBad >= 1 && c.vq < 2) { c.vq++; c.peers.forEach(p => p.pc && setVideoQuality(p.pc, c.vq)); }
+    if (c.qBad >= 3 && lvl === 3 && vt && vt.enabled && !c.autoVidOff) { c.autoVidOff = true; vt.enabled = false; toast('اینترنت ضعیف است؛ برای حفظ صدا، تصویر موقتاً قطع شد'); const b = $('#btnCam'); if (b) { b.className = 'cb off'; b.innerHTML = icon('videoOff'); } }
+    if (c.qGood >= 3) {
+      if (c.autoVidOff && vt) { c.autoVidOff = false; vt.enabled = true; const b = $('#btnCam'); if (b) { b.className = 'cb'; b.innerHTML = icon('video'); } }
+      else if (c.vq > 0) { c.vq--; c.peers.forEach(p => p.pc && setVideoQuality(p.pc, c.vq)); }
+      c.qGood = 0;
+    }
+  }, 4000);
+}
+const NET_GLYPH = ['▂▄▆█', '▂▄▆░', '▂▄░░', '▂░░░'];
+function setCallStatusSuffix() { if (call && call.tickUpd) call.tickUpd(); }
 function startTimer() {
   const t0 = Date.now();
   if (!call.group && call.kind === 'video') $('#callinfo').hidden = true;
   clearInterval(call.tick);
-  const upd = () => { const s = Math.floor((Date.now() - t0) / 1000); setCallStatus(String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') + (call.group ? ' · ' + (call.peers.size + 1) + ' نفر' : '')); };
-  upd(); call.tick = setInterval(() => call ? upd() : 0, 1000);
+  const upd = () => { const s = Math.floor((Date.now() - t0) / 1000); setCallStatus(String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') + (call.group ? ' · ' + (call.peers.size + 1) + ' نفر' : '') + (call.net != null ? ' · ' + NET_GLYPH[call.net] : '')); };
+  call.tickUpd = upd; upd(); call.tick = setInterval(() => call ? upd() : 0, 1000);
 }
 function onPeerState(peer) {
   if (!call || !peer.pc) return;
   const pc = peer.pc, cs = pc.connectionState, is = pc.iceConnectionState;
   if (cs === 'connected' || is === 'connected' || is === 'completed') {
-    clearTimeout(peer.connTimer); peer.restarted = false; setTileStatus(peer, '');
-    if (!call.connected) { call.connected = true; startTimer(); }
+    clearTimeout(peer.connTimer); clearTimeout(peer.kick); clearTimeout(peer.dis); peer.restarts = 0; setTileStatus(peer, '');
+    if (!call.connected) { call.connected = true; startTimer(); startQuality(); }
     return;
   }
   if (cs === 'failed' || is === 'failed') {
-    if (peer.offerer && !peer.restarted) { peer.restarted = true; setTileStatus(peer, 'تلاش دوباره…'); sendOffer(peer, true).catch(() => {}); return; }
-    peerFailed(peer);
+    clearTimeout(peer.dis);
+    setTileStatus(peer, 'اتصال ضعیف… تلاش دوباره');
+    setTimeout(() => { if (call && peer.pc === pc && ['failed', 'disconnected'].includes(pc.iceConnectionState)) restartIce(peer); }, 600 + peer.restarts * 1200);
     return;
   }
-  if (is === 'disconnected') setTileStatus(peer, 'اتصال ضعیف…');
+  if (is === 'disconnected') {
+    setTileStatus(peer, 'اتصال ضعیف…');
+    clearTimeout(peer.dis);
+    peer.dis = setTimeout(() => { if (call && peer.pc === pc && pc.iceConnectionState === 'disconnected') restartIce(peer); }, 4000);
+  }
 }
 const failHint = peer => (peer.cand.srflx + peer.cand.relay === 0)
   ? 'آدرس عمومی پیدا نشد؛ اینترنت یا فیلترینگ اجازهٔ تماس مستقیم نمی‌دهد (سرور TURN لازم است).'
@@ -2785,7 +2881,7 @@ async function endCall(reason) {
 function cleanupCall(msg) {
   if (!call) return;
   const c = call; call = null;
-  clearTimeout(c.timer); clearInterval(c.tick); clearInterval(c.poll);
+  clearTimeout(c.timer); clearInterval(c.tick); clearInterval(c.poll); clearInterval(c.qIv);
   c.peers.forEach(p => { try { closePC(p); } catch (_) {} });
   c.stream.getTracks().forEach(t => t.stop());
   $('#tiles').innerHTML = '';
@@ -2864,7 +2960,7 @@ $('#btnMute').onclick = () => {
 $('#btnCam').onclick = () => {
   if (!call) return;
   const t = call.stream.getVideoTracks()[0]; if (!t) return;
-  t.enabled = !t.enabled;
+  call.autoVidOff = false; t.enabled = !t.enabled;
   $('#btnCam').className = 'cb' + (t.enabled ? '' : ' off');
   $('#btnCam').innerHTML = icon(t.enabled ? 'video' : 'videoOff');
   const me_ = tileOf('me'); if (me_) me_.classList.toggle('novid', !t.enabled);
