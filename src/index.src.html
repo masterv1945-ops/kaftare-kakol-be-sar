@@ -1086,7 +1086,7 @@ details[open]>*:not(summary){animation:riseIn .3s var(--ease) both}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۹</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۰</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1146,7 +1146,6 @@ details[open]>*:not(summary){animation:riseIn .3s var(--ease) both}
   <div id="callbar">
     <button class="cb" id="btnMute" type="button" aria-label="میکروفون"></button>
     <button class="cb" id="btnCam" type="button" aria-label="دوربین"></button>
-    <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
     <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
     <button class="cb hang" id="btnHang" type="button" aria-label="قطع تماس"></button>
   </div>
@@ -1219,9 +1218,9 @@ const ICONS = {
 };
 const icon = n => `<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 let toastT;
-function toast(t) {
+function toast(t, ms) {
   const box = $('#toast'); box.innerHTML = `<span>${esc(t)}</span>`;
-  clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', 3200);
+  clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', ms || 3200);
 }
 const fmtTime = d => d ? new Date(d).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '';
 const fmtDay = d => new Date(d).toLocaleDateString('fa-IR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -2731,7 +2730,7 @@ function showCallUI() {
   $('#btnCam').hidden = call.kind !== 'video';
   $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
   $('#btnCam').className = 'cb'; $('#btnCam').innerHTML = icon('video');
-  { const b = $('#btnShare'); b.className = 'cb'; b.innerHTML = icon('screen'); b.hidden = !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia); }
+  { const b = $('#btnShare'); b.className = 'cb'; b.innerHTML = icon('screen'); b.hidden = false; }
   $('#callinfo').hidden = false;
   $('#tiles').innerHTML = '';
   $('#tiles').classList.toggle('audio', call.kind !== 'video');
@@ -3207,10 +3206,11 @@ function applyShare(pc, reneg) {   // put the shared screen (and mixed audio) on
 }
 async function startShare() {
   if (!call || call.share) return;
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)) { toast('این مرورگر یا گوشی اشتراک صفحه را پشتیبانی نمی‌کند؛ از Chrome یا Edge روی کامپیوتر استفاده کنید', 5000); return; }
   let ds;
   try {
     ds = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1600 }, height: { ideal: 900 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, systemAudio: 'include', selfBrowserSurface: 'exclude' });
-  } catch (e) { if (e && e.name !== 'NotAllowedError') toast('اشتراک صفحه در این مرورگر ممکن نشد'); return; }
+  } catch (e) { if (e && e.name !== 'NotAllowedError') toast('اشتراک صفحه ممکن نشد: ' + (e.name || '') + (location.protocol === 'https:' || location.hostname === 'localhost' ? '' : ' (نیاز به https)')); return; }
   const track = ds.getVideoTracks()[0]; if (!track) return;
   try { track.contentHint = 'detail'; } catch (_) {}
   const sh = { ds, track, mixTrack: null, ctx: null };
