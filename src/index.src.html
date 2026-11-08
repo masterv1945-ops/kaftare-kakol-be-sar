@@ -1155,7 +1155,7 @@ label.pw input{padding-right:46px}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۱</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۲</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1465,7 +1465,7 @@ function showAuth() { $('#auth').hidden = false; $('#app').hidden = true; setMod
 
 /* ================= settings & look ================= */
 const SAFE = (f, d) => { try { return f(); } catch (_) { return d; } };
-let settings = { last_seen_visibility: 'all', photo_visibility: 'all', read_receipts: true, typing_indicator: true, notifications_enabled: true, theme: 'auto' };
+let settings = { last_seen_visibility: 'everyone', photo_visibility: 'everyone', read_receipts: true, typing_indicator: true, notifications_enabled: true, theme: 'system' };
 let ui = SAFE(() => JSON.parse(localStorage.getItem('kaftarUi') || '{}'), {}) || {};
 const WALLS = [
   ['', 'ساده'],
@@ -1491,6 +1491,9 @@ function applyUi() {
 async function loadSettings() {
   const { data } = await sb.from('user_settings').select('*').eq('user_id', me.id).limit(1);
   if (data && data[0]) Object.assign(settings, data[0]);
+  if (!['light', 'dark', 'system'].includes(settings.theme)) settings.theme = 'system';
+  if (!['everyone', 'contacts', 'nobody'].includes(settings.last_seen_visibility)) settings.last_seen_visibility = 'everyone';
+  if (!['everyone', 'contacts', 'nobody'].includes(settings.photo_visibility)) settings.photo_visibility = 'everyone';
 }
 async function saveSettings(patch) {
   Object.assign(settings, patch);
@@ -1634,7 +1637,7 @@ function openSettings() {
   openModal(`<div class="card" id="setc">
     <h3 style="margin:0 0 12px">تنظیمات</h3>
     <div class="sec"><b>ظاهر</b>
-      <div class="seg3" id="thSeg">${[['auto', 'خودکار'], ['light', 'روشن'], ['dark', 'تاریک']].map(([v, t]) => `<button type="button" data-th="${v}" class="${settings.theme === v ? 'on' : ''}">${t}</button>`).join('')}</div>
+      <div class="seg3" id="thSeg">${[['system', 'خودکار'], ['light', 'روشن'], ['dark', 'تاریک']].map(([v, t]) => `<button type="button" data-th="${v}" class="${settings.theme === v ? 'on' : ''}">${t}</button>`).join('')}</div>
       <div class="swatches">${ACCENTS.map(c => `<button type="button" data-ac="${c}" style="background:${c}" class="${(ui.accent || ACCENTS[0]) === c ? 'on' : ''}" aria-label="رنگ"></button>`).join('')}</div>
       <label class="f">اندازه متن: <span id="fsv">${ui.font || 15}</span><input type="range" id="fs" min="13" max="20" value="${ui.font || 15}"></label>
     </div>
@@ -1672,7 +1675,7 @@ function openSettings() {
     if (e.target.checked && window.Notification && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (_) {} }
     saveSettings({ notifications_enabled: e.target.checked });
   };
-  $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'all' : 'nobody' });
+  $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'everyone' : 'nobody' });
   $('#sRead').onchange = e => { saveSettings({ read_receipts: e.target.checked }); if (activeId) renderMsgs(); };
   $('#sType').onchange = e => saveSettings({ typing_indicator: e.target.checked });
   $('#sClose').onclick = closeModal;
