@@ -596,7 +596,6 @@ body{overscroll-behavior:none}
 /* ---- v13 polish ---- */
 :root{--r-lg:20px;--ease:cubic-bezier(.2,.8,.2,1)}
 body{background:radial-gradient(1200px 600px at 100% -10%,color-mix(in oklab,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 110%,color-mix(in oklab,var(--sheen,#7a6ae0) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
-#msgs{background:linear-gradient(180deg,transparent,color-mix(in oklab,var(--accent) 4%,transparent))}
 .m{animation:mIn .22s var(--ease) both}
 @keyframes mIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .row{transition:background .15s,transform .15s var(--ease)}
@@ -613,6 +612,44 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
 #callui{background:radial-gradient(900px 500px at 50% 0,color-mix(in oklab,var(--accent) 35%,#0b1216),#080d10 70%)}
 .cb{transition:transform .15s var(--ease),background .15s}
 @media (prefers-reduced-motion:reduce){.m,#modal .card{animation:none}}
+
+/* ---- v15 look upgrade ---- */
+::selection{background:color-mix(in oklab,var(--accent) 35%,transparent)}
+#msgs{background-image:var(--wall),radial-gradient(700px 320px at 92% 0,color-mix(in oklab,var(--accent) 11%,transparent),transparent 70%),radial-gradient(600px 300px at 0 100%,color-mix(in oklab,var(--sheen,#7a6ae0) 9%,transparent),transparent 70%);background-size:var(--wallsize,140px),100% 100%,100% 100%}
+.unread{align-self:center;border:0;background:color-mix(in oklab,var(--accent) 14%,var(--panel));color:var(--accent);padding:2px 16px;border-radius:999px;font-weight:700;margin:10px 0}
+.chips{-webkit-mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent);mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent);padding-inline:18px}
+.chips button{transition:background .15s,color .15s,transform .15s var(--ease)}
+.chips button.on{box-shadow:0 3px 10px color-mix(in oklab,var(--accent) 38%,transparent)}
+.gs input,#side input[type=search],#side .search{border-radius:16px;background:color-mix(in oklab,var(--panel-2) 85%,transparent);border:1px solid transparent;transition:border-color .15s,box-shadow .15s}
+.row .av{box-shadow:0 0 0 2px var(--panel),0 0 0 3.5px color-mix(in oklab,var(--accent) 28%,transparent)}
+.row{border:1px solid transparent}
+.row:hover{border-color:color-mix(in oklab,var(--line) 70%,transparent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(30,20,60,.06)}
+.row.on,.row.act{border-color:color-mix(in oklab,var(--accent) 30%,transparent)}
+.badge{background:linear-gradient(135deg,var(--accent),color-mix(in oklab,var(--accent) 60%,var(--sheen,#7a6ae0)))}
+.side-h{background:linear-gradient(180deg,color-mix(in oklab,var(--accent) 7%,var(--panel)),var(--panel))}
+.chat-h .hd b,.chat-h .hd strong{letter-spacing:-.2px}
+.composer{margin:0 12px max(12px,env(safe-area-inset-bottom,0px));padding:6px 8px;border:1px solid var(--line);border-radius:28px;background:color-mix(in oklab,var(--panel) 94%,transparent);backdrop-filter:blur(12px);box-shadow:0 8px 26px rgba(30,20,60,.12),0 1px 2px rgba(30,20,60,.06)}
+.composer textarea{background:transparent!important;border:0!important;padding:10px 8px!important}
+.composer textarea:focus{box-shadow:none!important}
+.composer:focus-within{border-color:color-mix(in oklab,var(--accent) 55%,var(--line));box-shadow:0 8px 26px rgba(30,20,60,.12),0 0 0 3px color-mix(in oklab,var(--accent) 18%,transparent)}
+.composer .ib.send{box-shadow:0 6px 16px color-mix(in oklab,var(--accent) 45%,transparent)}
+.m{border:1px solid color-mix(in oklab,var(--line) 55%,transparent)}
+.m.mine{border-color:transparent}
+.m a{text-underline-offset:3px}
+.card{background:color-mix(in oklab,var(--panel) 90%,transparent);backdrop-filter:blur(18px);border-color:color-mix(in oklab,var(--line) 60%,transparent)}
+.brand h1{background:linear-gradient(120deg,var(--ink),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .logo,.logo{animation:bob 5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.btn{border-radius:14px;padding:11px 18px;letter-spacing:.1px}
+.btn:active{box-shadow:none}
+#toast,.toast{backdrop-filter:blur(12px);border-radius:999px}
+#callbar{align-self:center;width:fit-content;max-width:94vw;margin-inline:auto;padding:10px 16px;gap:12px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);border-radius:40px;margin-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+.cb{width:54px;height:54px}
+.cb:hover{background:rgba(255,255,255,.26)}
+.cb.hang{box-shadow:0 6px 20px rgba(210,71,63,.55)}
+.tile{box-shadow:0 6px 22px rgba(0,0,0,.35)}
+@media (max-width:760px){.composer{margin:0 8px max(8px,env(safe-area-inset-bottom,0px))}.cb{width:50px;height:50px}#callbar{gap:8px;padding:8px 12px}}
+@media (prefers-reduced-motion:reduce){.logo,.brand .logo{animation:none}}
 </style>
 </head>
 <body>
@@ -908,7 +945,7 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۴</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۵</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
