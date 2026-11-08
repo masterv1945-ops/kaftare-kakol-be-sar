@@ -596,7 +596,6 @@ body{overscroll-behavior:none}
 /* ---- v13 polish ---- */
 :root{--r-lg:20px;--ease:cubic-bezier(.2,.8,.2,1)}
 body{background:radial-gradient(1200px 600px at 100% -10%,color-mix(in oklab,var(--accent) 14%,transparent),transparent 60%),radial-gradient(900px 500px at -10% 110%,color-mix(in oklab,var(--sheen,#7a6ae0) 12%,transparent),transparent 60%),var(--bg);background-attachment:fixed}
-.m{animation:mIn .22s var(--ease) both}
 @keyframes mIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .row{transition:background .15s,transform .15s var(--ease)}
 .row:active,.btn:active,.ib:active,.cb:active{transform:scale(.96)}
@@ -611,7 +610,7 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
 .badge{box-shadow:0 2px 8px color-mix(in oklab,var(--accent) 45%,transparent)}
 #callui{background:radial-gradient(900px 500px at 50% 0,color-mix(in oklab,var(--accent) 35%,#0b1216),#080d10 70%)}
 .cb{transition:transform .15s var(--ease),background .15s}
-@media (prefers-reduced-motion:reduce){.m,#modal .card{animation:none}}
+@media (prefers-reduced-motion:reduce){#modal .card{animation:none}}
 
 /* ---- v15 look upgrade ---- */
 ::selection{background:color-mix(in oklab,var(--accent) 35%,transparent)}
@@ -650,6 +649,63 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
 .tile{box-shadow:0 6px 22px rgba(0,0,0,.35)}
 @media (max-width:760px){.composer{margin:0 8px max(8px,env(safe-area-inset-bottom,0px))}.cb{width:50px;height:50px}#callbar{gap:8px;padding:8px 12px}}
 @media (prefers-reduced-motion:reduce){.logo,.brand .logo{animation:none}}
+
+/* ---- v16 motion ---- */
+:root{--spring:cubic-bezier(.34,1.56,.64,1)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes viewIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes sendPop{0%{opacity:0;transform:translateY(16px) scale(.9)}60%{transform:translateY(-2px) scale(1.02)}100%{opacity:1;transform:none}}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 color-mix(in oklab,var(--ok) 55%,transparent)}100%{box-shadow:0 0 0 22px transparent}}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in oklab,var(--danger) 55%,transparent)}50%{box-shadow:0 0 0 10px transparent}}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes shine{from{background-position:200% 0}to{background-position:-200% 0}}
+@keyframes zoomIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+#app{animation:fadeIn .5s ease both}
+#main>*{animation:viewIn .32s var(--ease) both}
+.m.fresh{animation:sendPop .34s var(--spring) both}
+.m.fresh:not(.mine){animation-name:riseIn;animation-duration:.3s}
+.opening>.m,.opening>.sys{animation:riseIn .38s var(--ease) both}
+.opening>.m:nth-last-child(1),.opening>.sys:nth-last-child(1){animation-delay:0.315s}
+.opening>.m:nth-last-child(2),.opening>.sys:nth-last-child(2){animation-delay:0.280s}
+.opening>.m:nth-last-child(3),.opening>.sys:nth-last-child(3){animation-delay:0.245s}
+.opening>.m:nth-last-child(4),.opening>.sys:nth-last-child(4){animation-delay:0.210s}
+.opening>.m:nth-last-child(5),.opening>.sys:nth-last-child(5){animation-delay:0.175s}
+.opening>.m:nth-last-child(6),.opening>.sys:nth-last-child(6){animation-delay:0.140s}
+.opening>.m:nth-last-child(7),.opening>.sys:nth-last-child(7){animation-delay:0.105s}
+.opening>.m:nth-last-child(8),.opening>.sys:nth-last-child(8){animation-delay:0.070s}
+.opening>.m:nth-last-child(9),.opening>.sys:nth-last-child(9){animation-delay:0.035s}
+.opening>.m:nth-last-child(10),.opening>.sys:nth-last-child(10){animation-delay:0.000s}
+#auth .card{animation:riseIn .6s var(--ease) both}
+#auth .card>*{animation:riseIn .55s var(--ease) both}
+#auth .card>*:nth-child(2){animation-delay:.05s}#auth .card>*:nth-child(3){animation-delay:.1s}#auth .card>*:nth-child(4){animation-delay:.15s}#auth .card>*:nth-child(5){animation-delay:.2s}#auth .card>*:nth-child(6){animation-delay:.25s}
+#toast span{animation:toastIn .35s var(--spring) both}
+#modal{animation:fadeIn .2s ease both}
+#lb{animation:fadeIn .2s ease both}#lb img,#lb video{animation:zoomIn .28s var(--ease) both}
+#incoming .card{animation:riseIn .4s var(--spring) both}
+#incoming .av{animation:ringPulse 1.4s ease-out infinite;border-radius:50%}
+#incoming .cb.ok{animation:ringPulse 1.4s ease-out infinite}
+.composer .ib.rec{animation:recPulse 1.2s ease-in-out infinite}
+.btn{background-size:200% 100%;transition:transform .18s var(--ease),box-shadow .18s,filter .18s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px color-mix(in oklab,var(--accent) 45%,transparent)}
+.ib:hover{background:color-mix(in oklab,var(--accent) 12%,transparent);color:var(--accent)}
+.ib svg,.cb svg{transition:transform .2s var(--spring)}
+.ib:hover svg{transform:scale(1.12)}
+.row .badge{transition:transform .25s var(--spring)}
+.row:hover .badge{transform:scale(1.1)}
+.rx button{transition:transform .15s var(--spring),background .15s}
+.rx button:hover{transform:scale(1.12)}.rx button:active{transform:scale(.9)}
+.chips button:hover{transform:translateY(-1px)}
+.tabs button,.seg button{transition:background .2s,color .2s,box-shadow .2s}
+.tile{animation:zoomIn .4s var(--ease) both}
+.tile .ts:not(:empty){animation:fadeIn .3s ease both}
+.cb:hover{transform:translateY(-2px)}.cb:active{transform:scale(.92)}
+.pigeon{animation:bob 4.5s ease-in-out infinite}
+.empty .big{animation:riseIn .7s var(--ease) both}
+.pg-sheen{animation-duration:6s}
+html{scroll-behavior:smooth}
+.m,.row,.btn,.chat-h,.composer,#side,.card{transition-property:background-color,border-color,color,box-shadow,transform,opacity;transition-duration:.25s}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -945,7 +1001,7 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۵</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۶</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1922,6 +1978,7 @@ function renderMsgs(forceBottom) {
     if (!divDone && unreadFrom && m.sender_id !== me.id && new Date(m.created_at) > new Date(unreadFrom) && forceBottom) { const u = document.createElement('div'); u.className = 'unread'; u.textContent = 'پیام‌های خوانده‌نشده'; frag.appendChild(u); divDone = true; }
     frag.appendChild(msgEl(m, c)); prev = m;
   });
+  if (forceBottom) { box.classList.add('opening'); clearTimeout(box._op); box._op = setTimeout(() => box.classList.remove('opening'), 1100); }
   box.appendChild(frag);
   resolveMedia(box);
   if (near) box.scrollTop = box.scrollHeight;
@@ -1936,7 +1993,7 @@ function upsertMsg(m) {
   if (box.querySelector('.empty')) box.innerHTML = '';
   const last = msgs[msgs.length - 2];
   if (!last || dayKey(last.created_at) !== dayKey(m.created_at)) box.appendChild(dayEl(m.created_at));
-  box.appendChild(el); resolveMedia(el);
+  el.classList.add('fresh'); box.appendChild(el); resolveMedia(el);
   if (near) box.scrollTop = box.scrollHeight;
   onMsgsScroll();
 }
