@@ -726,6 +726,70 @@ input,textarea{font-size:15.5px;line-height:1.7}
 .tile .tn{font-weight:600}
 h1,h2,h3{font-weight:800;line-height:1.35}
 @media (max-width:760px){body{font-size:16px}.m{font-size:16px}}
+
+/* ---- v18 entrance + motion everywhere ---- */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+@keyframes slideSide{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes flyOut{0%{transform:none}45%{transform:translate(-14px,-12px) scale(.8) rotate(-12deg);opacity:0}46%{transform:translate(12px,10px) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+@keyframes callIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px color-mix(in oklab,var(--accent) 40%,transparent))}50%{filter:drop-shadow(0 0 22px color-mix(in oklab,var(--accent) 80%,transparent))}}
+@keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+#splash{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(900px 600px at 50% 40%,color-mix(in oklab,var(--accent) 28%,var(--bg)),var(--bg));opacity:0;visibility:hidden;pointer-events:none;transition:opacity .4s ease,visibility 0s .4s}
+#splash.show{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .35s ease}
+#splash .pigeon{width:150px;height:150px;transform:scale(.7) translateY(20px);opacity:0;transition:transform .7s var(--spring),opacity .5s;animation:glow 2s ease-in-out infinite}
+#splash.show .pigeon{transform:none;opacity:1}
+#splash b{font-family:var(--display);font-weight:400;font-size:30px;opacity:0;transform:translateY(12px);transition:all .6s var(--ease) .15s}
+#splash.show b{opacity:1;transform:none}
+#splash i{width:120px;height:4px;border-radius:4px;background:color-mix(in oklab,var(--ink-2) 25%,transparent);overflow:hidden;position:relative;margin-top:8px}
+#splash i::after{content:'';position:absolute;inset:0;width:60%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--sheen,#7a6ae0));animation:loadbar 1s ease-in-out infinite}
+.shake{animation:shake .4s ease}
+#authBtn:disabled,#otpBtn:disabled{opacity:.85;cursor:progress}
+#authBtn:disabled::before,#otpBtn:disabled::before{content:'';width:16px;height:16px;border:2.5px solid currentColor;border-inline-end-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+#authErr:not(:empty),#otpErr:not(:empty){animation:riseIn .3s var(--ease) both}
+#authForm,#otpForm{animation:fadeIn .35s ease both}
+.seg button.on{transition:all .25s var(--spring)}
+body.entering .side-h{animation:slideDown .6s var(--ease) both}
+body.entering .gs,body.entering .chips,body.entering .tabs{animation:slideDown .6s var(--ease) .12s both}
+body.entering #list>*,#list.swap>*{animation:riseIn .45s var(--ease) both}
+body.entering #list>*:nth-child(1),#list.swap>*:nth-child(1){animation-delay:0.095s}
+body.entering #list>*:nth-child(2),#list.swap>*:nth-child(2){animation-delay:0.140s}
+body.entering #list>*:nth-child(3),#list.swap>*:nth-child(3){animation-delay:0.185s}
+body.entering #list>*:nth-child(4),#list.swap>*:nth-child(4){animation-delay:0.230s}
+body.entering #list>*:nth-child(5),#list.swap>*:nth-child(5){animation-delay:0.275s}
+body.entering #list>*:nth-child(6),#list.swap>*:nth-child(6){animation-delay:0.320s}
+body.entering #list>*:nth-child(7),#list.swap>*:nth-child(7){animation-delay:0.365s}
+body.entering #list>*:nth-child(8),#list.swap>*:nth-child(8){animation-delay:0.410s}
+body.entering #list>*:nth-child(9),#list.swap>*:nth-child(9){animation-delay:0.455s}
+body.entering #list>*:nth-child(10),#list.swap>*:nth-child(10){animation-delay:0.500s}
+body.entering #list>*:nth-child(11),#list.swap>*:nth-child(11){animation-delay:0.545s}
+body.entering #list>*:nth-child(12),#list.swap>*:nth-child(12){animation-delay:0.590s}
+body.entering #main{animation:slideSide .7s var(--ease) .1s both}
+body.entering .side-f{animation:riseIn .6s var(--ease) .5s both}
+body.entering .badge{animation:pop .5s var(--spring) .7s both}
+.stories .av,.story .av,#myStory .av{transition:transform .25s var(--spring)}
+.stories .av:hover,.story .av:hover{transform:scale(1.08)}
+#modal .card>*{animation:riseIn .4s var(--ease) both}
+#modal .card>*:nth-child(2){animation-delay:.04s}#modal .card>*:nth-child(3){animation-delay:.08s}#modal .card>*:nth-child(4){animation-delay:.12s}#modal .card>*:nth-child(5){animation-delay:.16s}#modal .card>*:nth-child(n+6){animation-delay:.2s}
+#modal .row{animation:riseIn .35s var(--ease) both}
+#modal .row:nth-child(2){animation-delay:.04s}#modal .row:nth-child(3){animation-delay:.08s}#modal .row:nth-child(4){animation-delay:.12s}#modal .row:nth-child(5){animation-delay:.16s}#modal .row:nth-child(n+6){animation-delay:.2s}
+#callui:not([hidden]){animation:callIn .45s var(--ease) both}
+#callAv,#callui .av{animation:ringPulse 2s ease-out infinite;border-radius:50%}
+#callbar .cb{animation:riseIn .5s var(--spring) both}
+#callbar .cb:nth-child(2){animation-delay:.06s}#callbar .cb:nth-child(3){animation-delay:.12s}#callbar .cb:nth-child(4){animation-delay:.18s}
+.composer .ib.send.go svg{animation:flyOut .5s var(--ease)}
+.rmsgs>*:last-child{animation:riseIn .3s var(--ease) both}
+.rplayer{animation:zoomIn .4s var(--ease) both}
+.pinbar,.sbar,.older{animation:slideDown .3s var(--ease) both}
+.chat-h .hd .av{transition:transform .25s var(--spring)}.chat-h .hd:hover .av{transform:scale(1.08)}
+.menu,.ctx,.popup,.emoji-pop,#emoPanel{animation:pop .22s var(--spring) both;transform-origin:bottom center}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.chip2,.tokbox,.bcard,.swatches button{transition:transform .18s var(--spring),box-shadow .18s}
+.chip2:hover,.bcard:hover,.swatches button:hover{transform:translateY(-2px)}
+details[open]>*:not(summary){animation:riseIn .3s var(--ease) both}
+.skeleton,.loading{background:linear-gradient(90deg,transparent,rgba(127,127,127,.18),transparent);background-size:200% 100%;animation:shine 1.4s linear infinite}
 </style>
 </head>
 <body>
@@ -997,6 +1061,7 @@ h1,h2,h3{font-weight:800;line-height:1.35}
 <ellipse cx="270" cy="204" rx="18" ry="7" fill="#fff" opacity=".28" transform="rotate(-28 270 204)" filter="url(#pgSoft2)"/>
 </g></g></symbol></svg>
 <!-- ============ auth ============ -->
+<div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
     <div class="brand"><div class="logo" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400" aria-hidden="true"><use href="#pigeon"/></svg></div><h1>کفتر کاکل به سر</h1></div>
@@ -1005,7 +1070,7 @@ h1,h2,h3{font-weight:800;line-height:1.35}
       <button id="tabIn" class="on" type="button">ورود</button>
       <button id="tabUp" type="button">ثبت‌نام</button>
     </div>
-    <form id="authForm" autocomplete="on">
+    <form id="authForm" autocomplete="on" novalidate>
       <label class="f" id="fName" hidden>نام نمایشی
         <input id="inName" autocomplete="name" maxlength="40" placeholder="مثلاً سجاد">
       </label>
@@ -1013,19 +1078,19 @@ h1,h2,h3{font-weight:800;line-height:1.35}
         <input id="inUser" dir="ltr" autocomplete="username" maxlength="32" pattern="[A-Za-z0-9_.]{3,32}" placeholder="sajad_1">
       </label>
       <label class="f">ایمیل
-        <input id="inEmail" type="email" dir="ltr" autocomplete="email" required placeholder="you@example.com">
+        <input id="inEmail" type="text" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" dir="ltr" autocomplete="email" placeholder="you@example.com">
       </label>
       <label class="f">رمز عبور
-        <input id="inPass" type="password" dir="ltr" autocomplete="current-password" minlength="6" required>
+        <input id="inPass" type="password" dir="ltr" autocomplete="current-password" autocapitalize="none">
       </label>
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۷</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۱۸</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
-        <input id="inCode" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="10" required placeholder="------" style="letter-spacing:.35em;text-align:center;font-size:22px;font-weight:700">
+        <input id="inCode" dir="ltr" inputmode="numeric" autocomplete="one-time-code" maxlength="32" required placeholder="------" style="letter-spacing:.35em;text-align:center;font-size:22px;font-weight:700">
       </label>
       <div class="err" id="otpErr" role="alert"></div>
       <button class="btn block" id="otpBtn" type="submit">تأیید ایمیل</button>
@@ -1235,11 +1300,30 @@ async function callAuth(body) {
 }
 const enDigits = t => String(t).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\s/g, '');
 
+/* clean text pasted from chats/notes: invisible direction marks, zero-width chars, odd spaces, Persian digits */
+const INVIS = /[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C]/g;
+const cleanEmail = t => enDigits(String(t || '')).replace(INVIS, '').replace(/^mailto:/i, '').replace(/[＠]/g, '@').replace(/[<>"'\s]/g, '').trim().toLowerCase();
+const cleanPass = t => String(t || '').replace(INVIS, '').replace(/[\r\n\t\u00A0]/g, '').replace(/^ +| +$/g, '');
+const cleanCode = t => enDigits(String(t || '')).replace(/\D/g, '');
+function wirePaste(el, fn) {
+  el.addEventListener('paste', e => {
+    const raw = e.clipboardData && e.clipboardData.getData('text'); if (raw == null) return;
+    e.preventDefault();
+    const v = fn(raw), a = el.selectionStart == null ? el.value.length : el.selectionStart, b = el.selectionEnd == null ? a : el.selectionEnd;
+    el.setRangeText(v, a, b, 'end'); el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  el.addEventListener('change', () => { const v = fn(el.value); if (v !== el.value) el.value = v; });
+}
+wirePaste($('#inEmail'), cleanEmail); wirePaste($('#inPass'), cleanPass); wirePaste($('#inCode'), cleanCode);
 $('#authForm').addEventListener('submit', async e => {
   e.preventDefault();
   const btn = $('#authBtn'), err = $('#authErr');
-  err.textContent = ''; btn.disabled = true;
-  const email = $('#inEmail').value.trim().toLowerCase(), password = $('#inPass').value;
+  err.textContent = '';
+  const email = cleanEmail($('#inEmail').value), password = cleanPass($('#inPass').value);
+  $('#inEmail').value = email;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = 'ایمیل معتبر نیست'; $('#inEmail').focus(); shake($('#authForm')); return; }
+  if (password.length < 6) { err.textContent = 'رمز عبور حداقل ۶ نویسه باشد'; $('#inPass').focus(); shake($('#authForm')); return; }
+  btn.disabled = true;
   try {
     if (mode === 'in') {
       const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -1301,6 +1385,12 @@ sb.auth.onAuthStateChange((ev, s) => {
   if (ev === 'SIGNED_IN' && s && !me) boot(s.user);
   if (ev === 'SIGNED_OUT') location.reload();
 });
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('.tabs button,.chips button'); const l = $('#list');
+  if (t && l) { l.classList.remove('swap'); void l.offsetWidth; l.classList.add('swap'); setTimeout(() => l.classList.remove('swap'), 700); }
+  const sd = e.target.closest && e.target.closest('.composer .ib.send'); if (sd) { sd.classList.remove('go'); void sd.offsetWidth; sd.classList.add('go'); }
+});
+function shake(el) { try { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); } catch (_) {} }
 function showAuth() { $('#auth').hidden = false; $('#app').hidden = true; setMode('in'); $('#authBtn').disabled = false; }
 
 /* ================= settings & look ================= */
@@ -1379,9 +1469,12 @@ let blocked = new Set(), stars = new Set(), pins = [], pinMsgs = {}, pinIdx = 0;
 let editing = null, filter = 'all', unreadFrom = null, hasOlder = false, readBy = {}, typingMap = {};
 const PAGE = 80;
 
+let splashT = 0;
+function splash(ms) { const el = $('#splash'); if (!el) return; el.classList.add('show'); clearTimeout(splashT); splashT = setTimeout(() => { el.classList.remove('show'); document.body.classList.add('entering'); setTimeout(() => document.body.classList.remove('entering'), 2200); }, ms); }
 async function boot(user) {
   if (me) return;
   me = user;
+  splash(950);
   $('#auth').hidden = true; $('#app').hidden = false;
   $('#logoutBtn').innerHTML = icon('out');
   $('#setBtn').innerHTML = icon('gear');
