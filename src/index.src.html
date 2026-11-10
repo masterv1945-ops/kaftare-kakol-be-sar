@@ -858,6 +858,35 @@ label.pw input{padding-right:46px}
 .m img[data-path],.m video{box-shadow:0 2px 10px rgba(0,0,0,.14)}
 .day{box-shadow:0 2px 8px rgba(30,20,60,.08);backdrop-filter:blur(8px)}
 @media (prefers-reduced-motion:reduce){#main>.empty::before,#main>.empty::after,#auth::before,#auth::after{animation:none}}
+
+/* ---- call minimise / floating window ---- */
+#calltop{position:absolute;top:max(12px,env(safe-area-inset-top,0px));inset-inline-end:12px;z-index:6;display:flex;gap:8px}
+.cb.sm{width:42px;height:42px}
+.cb.sm svg{width:20px;height:20px}
+#callui.mini{inset:auto;left:12px;right:auto;top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:156px;height:208px;border-radius:20px;overflow:hidden;z-index:95;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 14px 40px rgba(0,0,0,.55),0 0 0 1.5px rgba(255,255,255,.18);animation:none}
+#callui.mini.snap{transition:left .25s var(--ease),top .25s var(--ease)}
+#callui.mini #calltop,#callui.mini #diag,#callui.mini #gtop,#callui.mini .tile .tn,#callui.mini #btnCam,#callui.mini #btnShare{display:none!important}
+#callui.mini #tiles{display:block;padding:0}
+#callui.mini .tile{position:absolute;inset:0;border-radius:0;box-shadow:none;animation:none}
+#callui.mini .tile.me{display:none}
+#callui.mini .tile:not(.me)~.tile:not(.me){display:none}
+#callui.mini #callbar{position:absolute;inset:auto 0 8px 0;margin:0;padding:0;width:auto;max-width:none;gap:10px;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;justify-content:center;animation:none}
+#callui.mini .cb{width:38px;height:38px;animation:none}
+#callui.mini .cb svg{width:18px;height:18px}
+#callui:not(.aud).mini #callinfo{display:block;position:absolute;top:8px;inset-inline:6px;margin:0;padding:0;text-align:center}
+#callui:not(.aud).mini #callinfo .av,#callui:not(.aud).mini #callinfo h2{display:none}
+#callui:not(.aud).mini #callinfo p{display:inline-block;margin:0;background:rgba(0,0,0,.5);padding:1px 10px;border-radius:999px;font-size:11.5px;font-variant-numeric:tabular-nums}
+#callui.mini.aud{width:214px;height:68px;border-radius:40px}
+#callui.mini.aud #tiles{display:none}
+#callui.mini.aud #callinfo{display:flex!important;align-items:center;gap:10px;margin:0;padding:0 14px;height:100%;text-align:start;position:absolute;inset:0;inset-inline-end:92px}
+#callui.mini.aud #callinfo .av{width:42px;height:42px;font-size:17px;margin:0;flex:none;animation:none}
+#callui.mini.aud #callinfo h2{font-size:13.5px;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callui.mini.aud #callinfo p{font-size:11.5px;margin:0;font-variant-numeric:tabular-nums}
+#callui.mini.aud #callinfo>div{min-width:0}
+#callui.mini.aud #callbar{inset:0 auto 0 8px;align-items:center;width:84px;flex-direction:row-reverse}
+#callui.mini.aud #callbar .cb{width:36px;height:36px}
+@media (max-width:760px){#callui.mini{bottom:calc(84px + env(safe-area-inset-bottom,0px));left:auto;right:8px;width:132px;height:178px}}
+@media (prefers-reduced-motion:reduce){#callui.mini.snap{transition:none}}
 </style>
 </head>
 <body>
@@ -1155,7 +1184,7 @@ label.pw input{padding-right:46px}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۲</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۳</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1205,11 +1234,12 @@ label.pw input{padding-right:46px}
 
 <div id="callui" hidden>
   <div id="tiles"></div>
+  <div id="calltop"><button class="cb sm" id="btnPip" type="button" aria-label="پنجره شناور" hidden></button><button class="cb sm" id="btnMin" type="button" aria-label="کوچک کردن تماس"></button></div>
   <div id="gtop"></div>
   <div id="callinfo">
     <span class="av" id="callAv"></span>
-    <h2 id="callName"></h2>
-    <p id="callStatus"></p>
+    <div class="ci"><h2 id="callName"></h2>
+    <p id="callStatus"></p></div>
   </div>
   <div id="diag" dir="ltr"></div>
   <div id="callbar">
@@ -1268,6 +1298,8 @@ const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICONS = {
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  chevDown: '<path d="M6 9l6 6 6-6"/>',
+  pip: '<rect x="2" y="4" width="20" height="16" rx="2.5"/><rect x="12" y="11" width="7" height="5" rx="1" fill="currentColor" stroke="none"/>',
   screen: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M9 10l3-3 3 3M12 7v6"/>',
   video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
   videoOff: '<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/>',
@@ -2805,7 +2837,11 @@ function newCall(o) {
 }
 function showCallUI() {
   const name = call.group ? call.title : nameOf(call.otherUid);
+  $('#callui').classList.remove('mini'); $('#callui').removeAttribute('style');
   $('#callui').hidden = false;
+  $('#btnMin').innerHTML = icon('chevDown');
+  { const pb = $('#btnPip'); pb.innerHTML = icon('pip'); pb.hidden = !(call.kind === 'video' && (document.pictureInPictureEnabled || document.createElement('video').webkitSetPresentationMode)); }
+  wakeOn(); mediaSessionOn();
   $('#callui').classList.toggle('grp', !!call.group);
   $('#callAv').outerHTML = avatar(name, false).replace('class="av', 'id="callAv" class="av');
   $('#callName').textContent = name;
@@ -3060,7 +3096,7 @@ const NET_GLYPH = ['▂▄▆█', '▂▄▆░', '▂▄░░', '▂░░░
 function setCallStatusSuffix() { if (call && call.tickUpd) call.tickUpd(); }
 function startTimer() {
   const t0 = Date.now();
-  if (!call.group && call.kind === 'video') $('#callinfo').hidden = true;
+  if (!call.group && call.kind === 'video' && !$('#callui').classList.contains('mini')) $('#callinfo').hidden = true;
   clearInterval(call.tick);
   const upd = () => { const s = Math.floor((Date.now() - t0) / 1000); setCallStatus(String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') + (call.group ? ' · ' + (call.peers.size + 1) + ' نفر' : '') + (call.net != null ? ' · ' + NET_GLYPH[call.net] : '')); };
   call.tickUpd = upd; upd(); call.tick = setInterval(() => call ? upd() : 0, 1000);
@@ -3187,7 +3223,10 @@ function cleanupCall(msg) {
   c.peers.forEach(p => { try { closePC(p); } catch (_) {} });
   c.stream.getTracks().forEach(t => t.stop());
   $('#tiles').innerHTML = '';
+  try { if (document.pictureInPictureElement) document.exitPictureInPicture(); } catch (_) {}
+  $('#callui').classList.remove('mini', 'aud'); $('#callui').removeAttribute('style');
   $('#callui').hidden = true;
+  wakeOff(); mediaSessionOff();
   $('#diag').textContent = '';
   if (msg) toast(msg);
   updateBanner();
@@ -3251,6 +3290,72 @@ async function updateBanner() {
 
 /* ---------- controls ---------- */
 $('#btnHang').onclick = () => endCall('hangup');
+/* ---------- keep the call alive while using the rest of the app / phone ---------- */
+let wakeLock = null;
+async function wakeOn() { try { if (navigator.wakeLock && !wakeLock && !document.hidden && call) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (_) {} }
+function wakeOff() { try { wakeLock && wakeLock.release(); } catch (_) {} wakeLock = null; }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && call) wakeOn(); });
+function mediaSessionOn() {
+  if (!('mediaSession' in navigator)) return;
+  const ms = navigator.mediaSession;
+  try { ms.metadata = new MediaMetadata({ title: 'تماس در جریان', artist: call.group ? call.title : nameOf(call.otherUid), album: 'کفتر کاکل به سر', artwork: [{ src: 'logo-kaftar.svg', sizes: '512x512', type: 'image/svg+xml' }] }); ms.playbackState = 'playing'; } catch (_) {}
+  const set = (a, f) => { try { ms.setActionHandler(a, f); } catch (_) {} };
+  set('hangup', () => endCall('hangup'));
+  set('togglemicrophone', () => $('#btnMute').click());
+  set('togglecamera', () => { if (call && call.kind === 'video') $('#btnCam').click(); });
+  set('enterpictureinpicture', () => enterPip(true));
+}
+function mediaSessionOff() {
+  try { const ms = navigator.mediaSession; ms.metadata = null; ms.playbackState = 'none'; ['hangup', 'togglemicrophone', 'togglecamera', 'enterpictureinpicture'].forEach(a => { try { ms.setActionHandler(a, null); } catch (_) {} }); } catch (_) {}
+}
+async function enterPip(quiet) {
+  if (!call) return;
+  const vs = [...document.querySelectorAll('#tiles .tile video')];
+  const v = vs.find(x => !x.closest('.me') && x.srcObject && x.readyState >= 2) || vs.find(x => x.srcObject);
+  if (!v) { if (!quiet) toast('تصویری برای پنجره‌ی شناور نیست'); return; }
+  try {
+    if (document.pictureInPictureElement) { await document.exitPictureInPicture(); return; }
+    if (v.requestPictureInPicture) await v.requestPictureInPicture();
+    else if (v.webkitSetPresentationMode) v.webkitSetPresentationMode('picture-in-picture');
+  } catch (_) { if (!quiet) toast('پنجره‌ی شناور در این مرورگر ممکن نشد'); }
+}
+$('#btnPip').onclick = () => enterPip(false);
+/* minimise the call into a draggable floating window so the rest of the messenger stays usable */
+function setMini(on) {
+  const u = $('#callui'); if (on && !call) return;
+  u.classList.toggle('mini', on); u.classList.toggle('aud', on && !!call && call.kind !== 'video');
+  if (!on) u.removeAttribute('style');
+  if (call && call.kind === 'video') { if (on) $('#callinfo').hidden = false; else if (!call.group && call.connected) $('#callinfo').hidden = true; }
+}
+$('#btnMin').onclick = () => setMini(true);
+{
+  const cu = $('#callui'); let drag = null;
+  cu.addEventListener('pointerdown', e => {
+    if (!cu.classList.contains('mini') || e.target.closest('button')) return;
+    const r = cu.getBoundingClientRect(); drag = { sx: e.clientX, sy: e.clientY, l: r.left, t: r.top, moved: false };
+    try { cu.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  cu.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 7) return;
+    drag.moved = true;
+    const w = cu.offsetWidth, h = cu.offsetHeight;
+    cu.style.left = Math.min(innerWidth - w - 6, Math.max(6, drag.l + dx)) + 'px';
+    cu.style.top = Math.min(innerHeight - h - 6, Math.max(6, drag.t + dy)) + 'px';
+    cu.style.right = 'auto'; cu.style.bottom = 'auto';
+  });
+  const end = e => {
+    if (!drag) return; const d = drag; drag = null;
+    if (!d.moved) { setMini(false); return; }
+    const r = cu.getBoundingClientRect();
+    cu.classList.add('snap'); cu.style.left = (r.left + r.width / 2 < innerWidth / 2 ? 8 : innerWidth - r.width - 8) + 'px';
+    setTimeout(() => cu.classList.remove('snap'), 260);
+  };
+  cu.addEventListener('pointerup', end);
+  cu.addEventListener('pointercancel', () => { drag = null; });
+  addEventListener('resize', () => { if (cu.classList.contains('mini') && cu.style.left) { cu.style.left = Math.min(innerWidth - cu.offsetWidth - 6, Math.max(6, parseFloat(cu.style.left))) + 'px'; cu.style.top = Math.min(innerHeight - cu.offsetHeight - 6, Math.max(6, parseFloat(cu.style.top))) + 'px'; } });
+}
 $('#btnMute').onclick = () => {
   if (!call) return;
   const t = call.stream.getAudioTracks()[0]; if (!t) return;
@@ -3345,8 +3450,8 @@ function syncMedia() {
   sb.rpc('set_call_media', { call: call.id, muted: !(a && a.enabled), video_on: !!(v && v.enabled), screen_sharing: !!call.share }).then(() => {});
 }
 // best effort: leave the call when the tab is closed
-addEventListener('pagehide', () => {
-  if (!call) return;
+addEventListener('pagehide', e => {
+  if (!call || e.persisted) return;
   try {
     fetch(SUPABASE_URL + '/rest/v1/rpc/end_call', { method: 'POST', keepalive: true, headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + (authTok || SUPABASE_KEY), 'Content-Type': 'application/json' }, body: JSON.stringify({ call: call.id, reason: 'hangup' }) });
   } catch (_) {}
