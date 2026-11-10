@@ -546,8 +546,13 @@ label.f input:focus,label.f textarea:focus,.gs input:focus,.sbar input:focus,sel
   #app{grid-template-columns:minmax(0,1fr)}
   #msgs{padding:14px 12px}
   .m{max-width:88%}
-  .chat-h{padding:8px 10px}
+  .chat-h{padding:8px 6px;gap:2px}
+  .chat-h .ib{width:34px;height:34px;flex:none}
+  .chat-h .hd{gap:8px;flex:1 1 0;min-width:96px}
+  .chat-h .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+@media (max-width:520px){#srchBtn{display:none}}
+.chat-h .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---- landscape phones & fullscreen: fit the whole picture, no zoom/crop ---- */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -1220,7 +1225,7 @@ label.pw input{padding-right:46px}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۴</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۵</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -2042,7 +2047,7 @@ function renderHeader() {
 }
 function chatMenu(x, y) {
   const c = active(); if (!c) return;
-  const items = [['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
+  const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
   if (c.type === 'direct') items.push([blocked.has(otherId(c)) ? '🚫 رفع مسدودی' : '🚫 مسدود کردن', () => toggleBlock(otherId(c))]);
   if (c.type === 'group') items.push(['🚪 ترک گروه', async () => {
     if (!confirm('از این گروه خارج می‌شوید؟')) return;
