@@ -316,7 +316,7 @@
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۶</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۷</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1116,7 +1116,7 @@ $('#moreBtn').onclick = e => { const r = e.currentTarget.getBoundingClientRect()
 }
 function chatMenu(x, y) {
 const c = active(); if (!c) return;
-const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
+const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ...(isStandalone() ? [] : [[isFs() ? '⤡ خروج از تمام‌صفحه' : '⛶ تمام‌صفحه', toggleFs]]), ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
 if (c.type === 'direct') items.push([blocked.has(otherId(c)) ? '🚫 رفع مسدودی' : '🚫 مسدود کردن', () => toggleBlock(otherId(c))]);
 if (c.type === 'group') items.push(['🚪 ترک گروه', async () => {
 if (!confirm('از این گروه خارج می‌شوید؟')) return;
