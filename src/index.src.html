@@ -1223,7 +1223,7 @@ label.pw input{padding-right:46px}
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۸</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۲۹</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1769,14 +1769,24 @@ function openSettings() {
 }
 $('#setBtn').onclick = openSettings;
 async function toggleBlock(uid) {
-  if (blocked.has(uid)) { await sb.from('blocks').delete().eq('blocker_id', me.id).eq('blocked_id', uid); blocked.delete(uid); toast('مسدودی برداشته شد'); }
-  else { const { error } = await sb.from('blocks').insert({ blocker_id: me.id, blocked_id: uid }); if (error) return toast('مسدود نشد'); blocked.add(uid); toast('کاربر مسدود شد'); }
+  try {
+    await loadBlocks();
+    if (blocked.has(uid)) {
+      const { error } = await sb.from('blocks').delete().eq('blocker_id', me.id).eq('blocked_id', uid);
+      if (error) return toast('رفع مسدودی ممکن نشد: ' + error.message);
+      blocked.delete(uid); toast('مسدودی برداشته شد');
+    } else {
+      const { error } = await sb.from('blocks').upsert({ blocker_id: me.id, blocked_id: uid }, { onConflict: 'blocker_id,blocked_id', ignoreDuplicates: true });
+      if (error) return toast('مسدود نشد: ' + error.message);
+      blocked.add(uid); toast('کاربر مسدود شد');
+    }
+  } catch (ex) { toast('خطا: ' + (ex.message || ex)); }
   renderHeader();
 }
 
 /* ================= conversations ================= */
 async function loadConvs() {
-  const { data: mine } = await sb.from('conversation_members').select('conversation_id,last_read_at,is_pinned,is_archived,muted_until').eq('user_id', me.id);
+  const { data: mine } = await sb.from('conversation_members').select('conversation_id,last_read_at,is_pinned,is_archived,muted_until,cleared_at').eq('user_id', me.id);
   const ids = (mine || []).map(m => m.conversation_id);
   if (!ids.length) { convs = []; renderSide(); return; }
   const [cs, ms, last] = await Promise.all([
@@ -1787,7 +1797,10 @@ async function loadConvs() {
   const recent = {};
   (last.data || []).forEach(m => (recent[m.conversation_id] ||= []).push(m));
   readBy = {};
-  convs = (cs.data || []).map(c => {
+  convs = (cs.data || []).filter(c => {
+    const mn = mine.find(m => m.conversation_id === c.id); if (!mn || !mn.cleared_at) return true;
+    return (recent[c.id] || []).some(m => m.created_at > mn.cleared_at);
+  }).map(c => {
     const mem = (ms.data || []).filter(m => m.conversation_id === c.id);
     const o = mem.find(m => m.user_id !== me.id);
     if (c.type === 'direct' && o) readBy[c.id] = o.last_read_at;
@@ -1912,7 +1925,13 @@ function chatRowMenu(id, x, y) {
     [c.mine && c.mine.is_pinned ? '📌 برداشتن سنجاق' : '📌 سنجاق کردن گفتگو', async () => { await sb.from('conversation_members').update({ is_pinned: !(c.mine && c.mine.is_pinned) }).eq('conversation_id', id).eq('user_id', me.id); refreshConvs(); }],
     isMuted(c) ? ['🔔 فعال کردن اعلان', () => setM(null)] : ['🔕 بی‌صدا (۸ ساعت)', () => setM(new Date(Date.now() + 8 * 3600e3).toISOString())],
     ...(isMuted(c) ? [] : [['🔕 بی‌صدا (همیشه)', () => setM('2099-01-01T00:00:00Z')]]),
-    ['✅ علامت خوانده', async () => { await sb.rpc('mark_read', { conv: id }); refreshConvs(); }]
+    ['✅ علامت خوانده', async () => { await sb.rpc('mark_read', { conv: id }); refreshConvs(); }],
+    ['🗑 حذف گفتگو (فقط برای من)', async () => {
+      if (!confirm('این گفتگو از لیست شما پاک شود؟ (برای طرف مقابل باقی می‌ماند)')) return;
+      const { error } = await sb.from('conversation_members').update({ cleared_at: new Date().toISOString() }).eq('conversation_id', id).eq('user_id', me.id);
+      if (error) return toast('حذف نشد: ' + error.message);
+      if (activeId === id) activeId = null; await loadConvs(); renderMain(); toast('گفتگو حذف شد');
+    }]
   ]);
 }
 function syncTabs() { $('#tChats').classList.toggle('on', tab === 'chats'); $('#tUsers').classList.toggle('on', tab === 'users'); renderSide(); }
@@ -2065,6 +2084,12 @@ function chatMenu(x, y) {
     if (error) return toast('خروج ممکن نشد');
     activeId = null; await loadConvs(); renderMain();
   }]);
+  items.push(['🗑 حذف گفتگو (فقط برای من)', async () => {
+    if (!confirm('این گفتگو از لیست شما پاک شود؟ (برای طرف مقابل باقی می‌ماند)')) return;
+    const { error } = await sb.from('conversation_members').update({ cleared_at: new Date().toISOString() }).eq('conversation_id', c.id).eq('user_id', me.id);
+    if (error) return toast('حذف نشد: ' + error.message);
+    activeId = null; await loadConvs(); renderMain(); toast('گفتگو حذف شد');
+  }]);
   if (c.created_by === me.id) items.push(['🗑 حذف گفتگو برای همه', async () => {
     if (!confirm(c.type === 'group' ? 'این گروه برای همه‌ی اعضا برای همیشه حذف شود؟' : 'این گفتگو برای هر دو نفر برای همیشه حذف شود؟')) return;
     const { error } = await sb.rpc('delete_conversation', { conv: c.id });
@@ -2153,7 +2178,9 @@ async function openConv(id) {
 }
 async function loadMsgs() {
   const id = activeId;
-  const { data, error } = await sb.from('messages').select('*').eq('conversation_id', id).order('created_at', { ascending: false }).limit(PAGE);
+  const clr = active()?.mine?.cleared_at;
+  let q = sb.from('messages').select('*').eq('conversation_id', id); if (clr) q = q.gt('created_at', clr);
+  const { data, error } = await q.order('created_at', { ascending: false }).limit(PAGE);
   if (id !== activeId) return;
   if (error) { toast('خطا در دریافت پیام‌ها'); return; }
   msgs = data.reverse();
