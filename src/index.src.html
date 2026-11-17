@@ -927,6 +927,13 @@ label.pw input{padding-right:46px}
 .gd-foot{position:sticky;bottom:0;display:flex;gap:10px;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);margin-top:6px}
 .gd-foot .btn{flex:1}
 
+/* ============ v32 effects ============ */
+.fxlayer{position:fixed;inset:0;pointer-events:none;z-index:120;overflow:hidden}
+.fxlayer span{position:absolute;top:-8%;animation:fxfall linear forwards}
+@keyframes fxfall{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),115vh) rotate(540deg);opacity:.9}}
+#qsw{width:min(440px,92vw);padding:12px;display:flex;flex-direction:column;gap:8px}
+#qsw input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink)}
+#qswList{max-height:50vh;overflow:auto}
 /* ============ v30 polish layer ============ */
 :root{--glow:color-mix(in oklab,var(--accent) 38%,transparent);--spring2:cubic-bezier(.34,1.56,.64,1)}
 ::selection{background:color-mix(in oklab,var(--accent) 35%,transparent)}
@@ -1306,7 +1313,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۱</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۲</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1930,7 +1937,12 @@ function unreadCount(c) {
   const t = new Date(c.mine.last_read_at);
   return c.recent.filter(m => m.sender_id !== me.id && !m.deleted_at && new Date(m.created_at) > t).length;
 }
+const draftKey = id => 'kaftar_draft_' + id;
+const getDraft = id => SAFE(() => localStorage.getItem(draftKey(id)) || '', '');
+const setDraft = (id, v) => SAFE(() => { v ? localStorage.setItem(draftKey(id), v) : localStorage.removeItem(draftKey(id)); });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'txt' && activeId && !editing) setDraft(activeId, e.target.value.trim() ? e.target.value : ''); });
 function previewOf(c) {
+  if (c.id !== activeId) { const d = getDraft(c.id); if (d) return '✏️ پیش‌نویس: ' + d.slice(0, 60); }
   const ty = typingMap[c.id];
   if (ty && Date.now() < ty.until) return ty.kind === 'voice' ? 'در حال ضبط ویس…' : 'در حال نوشتن…';
   const m = c.last; if (!m) return 'شروع گفتگو';
@@ -2033,6 +2045,19 @@ function chatRowMenu(id, x, y) {
     }]
   ]);
 }
+function quickSwitch() {
+  if ($('#qsw')) return;
+  const items = () => [...convs.map(c => ({ t: convTitle(c), k: 'c', id: c.id })), ...Object.values(profiles).filter(p => p.id !== me.id && !convs.some(c => c.type === 'direct' && otherId(c) === p.id)).map(p => ({ t: p.display_name || p.username, k: 'u', id: p.id }))];
+  openModal(`<div class="card" id="qsw"><input id="qswIn" type="text" placeholder="پرش به گفتگو یا فرد…  (Enter)" autocomplete="off"><div id="qswList"></div></div>`);
+  const inp = $('#qswIn'), list = $('#qswList'); let cur = [];
+  const draw = () => { const q = inp.value.trim().toLowerCase(); cur = items().filter(x => !q || (x.t || '').toLowerCase().includes(q)).slice(0, 8);
+    list.innerHTML = cur.map((x, i) => `<button type="button" class="row ${i ? '' : 'on'}" data-i="${i}"><div class="rm"><div class="rt"><b>${esc(x.t)}</b></div><div class="rp">${x.k === 'c' ? 'گفتگو' : 'شروع گفتگوی تازه'}</div></div></button>`).join('') || '<p class="hint">چیزی پیدا نشد</p>'; };
+  const go = x => { if (!x) return; closeModal(); x.k === 'c' ? openConv(x.id) : openUser(x.id); };
+  inp.oninput = draw; draw(); inp.focus();
+  inp.onkeydown = e => { if (e.key === 'Enter') go(cur[0]); };
+  list.onclick = e => { const b = e.target.closest('[data-i]'); if (b) go(cur[+b.dataset.i]); };
+}
+document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && me) { e.preventDefault(); quickSwitch(); } });
 function syncTabs() { $('#tChats').classList.toggle('on', tab === 'chats'); $('#tUsers').classList.toggle('on', tab === 'users'); renderSide(); }
 $('#tChats').onclick = () => { tab = 'chats'; syncTabs(); };
 $('#tUsers').onclick = () => { tab = 'users'; syncTabs(); };
@@ -2273,6 +2298,7 @@ async function openConv(id) {
   activeId = id; msgs = []; reactions = {}; pins = []; pinMsgs = {};
   const c0 = active(); unreadFrom = c0 && c0.mine ? c0.mine.last_read_at : null;
   renderSide(); renderMain();
+  { const d = getDraft(id), t = $('#txt'); if (d && t) { t.value = d; t.dispatchEvent(new Event('input')); } }
   await loadMsgs();
   markRead();
 }
@@ -2394,6 +2420,14 @@ function renderMsgs(forceBottom) {
   if (near) box.scrollTop = box.scrollHeight;
   onMsgsScroll();
 }
+function celebrate(body) {
+  const set = /🎉|🎊|🥳|تبریک|مبارک/.test(body) ? ['🎉', '🎊', '✨', '🥳', '🎈'] : /❤️|😍|🥰|💕|دوستت دارم/.test(body) ? ['❤️', '💖', '💕', '💗'] : null;
+  if (!set || matchMedia('(prefers-reduced-motion:reduce)').matches || document.documentElement.classList.contains('lowfx')) return;
+  const layer = document.createElement('div'); layer.className = 'fxlayer';
+  for (let i = 0; i < 26; i++) { const e = document.createElement('span'); e.textContent = set[i % set.length];
+    e.style.cssText = `left:${Math.random() * 100}%;font-size:${16 + Math.random() * 20}px;animation-delay:${Math.random() * .5}s;animation-duration:${1.6 + Math.random() * 1.2}s;--dx:${Math.round(Math.random() * 120 - 60)}px`; layer.appendChild(e); }
+  document.body.appendChild(layer); setTimeout(() => layer.remove(), 3400);
+}
 function upsertMsg(m) {
   const box = $('#msgs'), c = active(); if (!box || !c) return;
   const old = box.querySelector('.m[data-id="' + m.id + '"],.sys[data-id="' + m.id + '"]');
@@ -2404,6 +2438,7 @@ function upsertMsg(m) {
   const last = msgs[msgs.length - 2];
   if (!last || dayKey(last.created_at) !== dayKey(m.created_at)) box.appendChild(dayEl(m.created_at));
   el.classList.add('fresh'); box.appendChild(el); resolveMedia(el);
+  if (m.kind === 'text' && m.body && Date.now() - new Date(m.created_at) < 15000) celebrate(m.body);
   { const pe = el.previousElementSibling; if (el.classList.contains('gc') && pe && pe.classList.contains('m')) pe.classList.add('gn'); }
   if (near) box.scrollTop = box.scrollHeight;
   onMsgsScroll();
@@ -2653,9 +2688,9 @@ async function sendText() {
     }
     t.value = ''; t.style.height = 'auto'; renderReply(); return;
   }
-  t.value = ''; t.style.height = 'auto'; $('#emojis') && ($('#emojis').hidden = true);
+  t.value = ''; t.style.height = 'auto'; $('#emojis') && ($('#emojis').hidden = true); setDraft(activeId, '');
   const r = await insertMsg({ kind: 'text', body });
-  if (!r) t.value = body;
+  if (!r) { t.value = body; setDraft(activeId, body); }
 }
 async function sendFile(file, forceKind, extra) {
   // shrink big phone photos before upload (max 1600px JPEG) to save data and time
