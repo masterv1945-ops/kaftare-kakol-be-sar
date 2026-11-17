@@ -651,7 +651,7 @@ input:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0
 @keyframes bob{50%{transform:translateY(-5px)}}
 .btn{border-radius:14px;padding:11px 18px;letter-spacing:.1px}
 .btn:active{box-shadow:none}
-#toast,.toast{backdrop-filter:blur(12px);border-radius:999px}
+#toast{backdrop-filter:none;-webkit-backdrop-filter:none;background:none;box-shadow:none;animation:none}
 #callbar{align-self:center;width:fit-content;max-width:94vw;margin-inline:auto;padding:10px 16px;gap:12px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.14);border-radius:40px;margin-bottom:max(20px,env(safe-area-inset-bottom,0px))}
 .cb{width:54px;height:54px}
 .cb:hover{background:rgba(255,255,255,.26)}
@@ -992,7 +992,7 @@ button:active:not(:disabled){transform:scale(.94)}
 .btn:not(.ghost):not(.danger){background:linear-gradient(135deg,var(--accent),color-mix(in oklab,var(--accent) 62%,var(--sheen,#fff)));color:var(--accent-ink);box-shadow:0 8px 20px -10px var(--glow)}
 .btn:hover{transform:translateY(-1px)}
 /* toast */
-#toast,.toast{backdrop-filter:blur(10px);box-shadow:0 14px 34px -12px rgba(0,0,0,.45);animation:modalIn .35s var(--spring2) both}
+#toast span{box-shadow:0 14px 34px -12px rgba(0,0,0,.45)}
 /* login: living aurora */
 #auth::before,#auth::after{content:"";position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(70px);opacity:.34;pointer-events:none;animation:aurora 16s ease-in-out infinite alternate}
 #auth::before{background:var(--accent);inset-block-start:-18vmax;inset-inline-start:-14vmax}
@@ -1306,7 +1306,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۰</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۱</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1449,6 +1449,15 @@ function toast(t, ms) {
   clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', ms || 3200);
 }
 const fmtTime = d => d ? new Date(d).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '';
+const fmtSeen = d => {
+  const t = new Date(d), n = new Date(), day0 = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((day0(n) - day0(t)) / 864e5), tm = fmtTime(d);
+  if (diff <= 0) return 'امروز ' + tm;
+  if (diff === 1) return 'دیروز ' + tm;
+  if (diff < 7) return t.toLocaleDateString('fa-IR', { weekday: 'long' }) + ' ' + tm;
+  return t.toLocaleDateString('fa-IR', { day: 'numeric', month: 'long' }) + (t.getFullYear() !== n.getFullYear() ? ' ' + t.toLocaleDateString('fa-IR', { year: 'numeric' }) : '') + '، ' + tm;
+};
+const seenApprox = d => { const h = (Date.now() - new Date(d)) / 36e5; return h < 72 ? 'اخیراً' : h < 24 * 7 ? 'این هفته' : h < 24 * 30 ? 'این ماه' : 'خیلی وقت پیش'; };
 const fmtDay = d => new Date(d).toLocaleDateString('fa-IR', { weekday: 'long', day: 'numeric', month: 'long' });
 const dayKey = d => new Date(d).toDateString();
 const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
@@ -1810,6 +1819,8 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
+      ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
+      <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
       ${sw('sType', 'نمایش «در حال نوشتن» من', settings.typing_indicator)}
       <div id="blkList"></div>
@@ -1837,6 +1848,11 @@ function openSettings() {
     saveSettings({ notifications_enabled: e.target.checked });
   };
   $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'everyone' : 'nobody' });
+  $('#sApx').onchange = async e => {
+    const v = e.target.checked, { error } = await sb.from('profiles').update({ seen_approx: v }).eq('id', me.id);
+    if (error) { e.target.checked = !v; return toast('ذخیره نشد: ' + error.message); }
+    if (profiles[me.id]) profiles[me.id].seen_approx = v; renderHeader(); toast(v ? 'آخرین بازدید تقریبی شد' : 'آخرین بازدید دقیق شد');
+  };
   $('#sRead').onchange = e => { saveSettings({ read_receipts: e.target.checked }); if (activeId) renderMsgs(); };
   $('#sType').onchange = e => saveSettings({ typing_indicator: e.target.checked });
   $('#sClose').onclick = closeModal;
@@ -2139,7 +2155,8 @@ function statusLine(c) {
   if (ty && Date.now() < ty.until) return ty.kind === 'voice' ? 'در حال ضبط ویس…' : 'در حال نوشتن…';
   if (c.type === 'group') return c.members.length + ' عضو';
   const p = prof(otherId(c));
-  return isOnline(p) ? 'آنلاین' : (p && p.last_seen_at ? 'آخرین بازدید ' + fmtTime(p.last_seen_at) : '');
+  const apx = (profiles[me.id] && profiles[me.id].seen_approx) || (p && p.seen_approx);
+  return isOnline(p) ? 'آنلاین' : (p && p.last_seen_at ? (apx ? 'آخرین بازدید: ' + seenApprox(p.last_seen_at) : 'آخرین بازدید ' + fmtSeen(p.last_seen_at)) : '');
 }
 function renderHeader() {
   const h = $('#chatH'), c = active(); if (!h || !c) return;
