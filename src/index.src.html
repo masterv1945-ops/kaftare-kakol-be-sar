@@ -927,6 +927,10 @@ label.pw input{padding-right:46px}
 .gd-foot{position:sticky;bottom:0;display:flex;gap:10px;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);margin-top:6px}
 .gd-foot .btn{flex:1}
 
+.vp{flex-wrap:wrap}
+.vp .wave{touch-action:pan-y}
+.vsk{flex-basis:100%;display:flex;justify-content:center;gap:10px;margin-top:2px}
+.vsk button{font-size:11.5px;padding:3px 10px;border-radius:999px;background:color-mix(in oklab,currentColor 12%,transparent);color:inherit;border:0;opacity:.85}
 /* ============ v32 effects ============ */
 .fxlayer{position:fixed;inset:0;pointer-events:none;z-index:120;overflow:hidden}
 .fxlayer span{position:absolute;top:-8%;animation:fxfall linear forwards}
@@ -1313,7 +1317,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۲</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۳</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -2352,7 +2356,8 @@ function voiceHtml(m, meta) {
   const heard = SAFE(() => (JSON.parse(localStorage.getItem('kaftarHeard') || '[]')).includes(m.id), false);
   return `<div class="vp" data-vid="${m.id}" data-dur="${meta.dur || 0}"><button type="button" class="vpb" data-vp="play" aria-label="پخش">▶</button>
     <div class="wave" data-vp="seek">${wave.map(h => `<i style="height:${Math.max(12, Math.min(100, h))}%"></i>`).join('')}</div>
-    <span class="vt">${fmtDur(meta.dur)}</span><button type="button" class="vs" data-vp="speed">×1</button>${m.sender_id !== me.id && !heard ? '<b class="vnew"></b>' : ''}
+    <span class="vt">${fmtDur(meta.dur)}</span><button type="button" class="vs" data-vp="speed">×1</button>
+    <div class="vsk"><button type="button" data-vp="back" aria-label="۱۰ ثانیه عقب">۱۰ ثانیه عقب</button><button type="button" data-vp="fwd" aria-label="۱۰ ثانیه جلو">۱۰ ثانیه جلو</button></div>${m.sender_id !== me.id && !heard ? '<b class="vnew"></b>' : ''}
     <audio preload="none" data-path="${esc(m.attachment_path)}"></audio></div>`;
 }
 function msgInner(m, c) {
@@ -2537,6 +2542,16 @@ $('#main').addEventListener('click', async e => {
 });
 
 /* ---------- voice player ---------- */
+(() => { let dr = null;
+  const frac = (w, x) => { const rc = w.getBoundingClientRect(); return Math.max(0, Math.min(1, 1 - (x - rc.left) / rc.width)); };
+  document.addEventListener('pointerdown', e => { const w = e.target.closest('.vp .wave'); if (!w) return; dr = { w, x: e.clientX, moved: false }; });
+  document.addEventListener('pointermove', e => { if (!dr) return; if (Math.abs(e.clientX - dr.x) > 6) dr.moved = true; if (!dr.moved) return;
+    const box = dr.w.closest('.vp'), au = box.querySelector('audio'), d = (isFinite(au.duration) && au.duration) || +box.dataset.dur || 0;
+    if (!au.src || !d) return; const f = frac(dr.w, e.clientX); au.currentTime = f * d;
+    box.querySelectorAll('.wave i').forEach((b, i, a) => b.classList.toggle('on', i / a.length < f)); box.querySelector('.vt').textContent = fmtDur(f * d); });
+  const end = () => { if (dr && dr.moved) { const w = dr.w; w.dataset.skipClick = '1'; setTimeout(() => delete w.dataset.skipClick, 50); } dr = null; };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', () => { dr = null; });
+})();
 const speeds = [1, 1.5, 2];
 async function voiceClick(el, e) {
   const box = el.closest('.vp'); const au = box.querySelector('audio');
@@ -2554,7 +2569,12 @@ async function voiceClick(el, e) {
   }
   if (act === 'play') { if (au.paused) au.play().catch(() => toast('پخش نشد')); else au.pause(); }
   if (act === 'speed') { const i = (speeds.indexOf(au.playbackRate) + 1) % speeds.length; au.playbackRate = speeds[i]; el.textContent = '×' + speeds[i]; }
-  if (act === 'seek') {
+  if (act === 'back' || act === 'fwd') {
+    const d = au.duration || +box.dataset.dur || 0, to = au.currentTime + (act === 'fwd' ? 10 : -10);
+    au.currentTime = Math.max(0, d ? Math.min(d - .05, to) : to); au.dispatchEvent(new Event('timeupdate'));
+    if (au.paused) au.play().catch(() => {});
+  }
+  if (act === 'seek' && !el.dataset.skipClick) {
     const rc = el.getBoundingClientRect(); const frac = 1 - (e.clientX - rc.left) / rc.width; // RTL: right edge is start
     const d = au.duration || +box.dataset.dur || 0; if (d) { au.currentTime = Math.max(0, Math.min(d, frac * d)); if (au.paused) au.play().catch(() => {}); }
   }
