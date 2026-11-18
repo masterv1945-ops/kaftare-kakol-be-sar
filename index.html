@@ -314,7 +314,7 @@
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۳</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۴</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1456,7 +1456,7 @@ box.addEventListener('contextmenu', e => { const el = e.target.closest('.m'); if
 bindLongPress(box, '.m', (el, x, y) => msgMenu(el.dataset.id, x, y));
 box.addEventListener('dblclick', e => { const el = e.target.closest('.m'); if (!el || e.target.closest('button,a,audio,video,img')) return; toggleReaction(el.dataset.id, '👍'); });
 let sx = 0, sy = 0, el0 = null, dx = 0;
-box.addEventListener('touchstart', e => { el0 = e.target.closest('.m'); if (!el0 || e.touches.length !== 1) { el0 = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; }, { passive: true });
+box.addEventListener('touchstart', e => { el0 = e.target.closest('.vp .wave, video, audio, input[type=range]') ? null : e.target.closest('.m'); if (!el0 || e.touches.length !== 1) { el0 = null; return; } sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; }, { passive: true });
 box.addEventListener('touchmove', e => {
 if (!el0) return;
 dx = e.touches[0].clientX - sx; const dy = e.touches[0].clientY - sy;
