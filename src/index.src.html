@@ -282,7 +282,9 @@ label.f input[dir=ltr]{text-align:left}
 .avedit{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .avedit .av{width:64px;height:64px;font-size:26px}
 .mrow{display:flex;align-items:center;gap:10px;padding:4px 0}
-.mrow span{flex:1}
+.mrow>span:not(.av){flex:1;min-width:0}
+.mrow .av{width:36px;height:36px;flex:none;font-size:14px}
+.mrow .av img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .role{color:var(--accent);font-size:11px}
 .invite{font-size:12px;word-break:break-all;background:var(--panel-2);padding:6px 8px;border-radius:8px;margin-bottom:6px;text-align:left}
 .mbody{max-height:260px;overflow:auto}
@@ -931,6 +933,8 @@ label.pw input{padding-right:46px}
 .vp .wave{touch-action:pan-y}
 .vsk{flex-basis:100%;display:flex;justify-content:center;gap:10px;margin-top:2px}
 .vsk button{font-size:11.5px;padding:3px 10px;border-radius:999px;background:color-mix(in oklab,currentColor 12%,transparent);color:inherit;border:0;opacity:.85}
+.callcard{display:flex;flex-direction:column;gap:8px;white-space:pre-wrap}
+.callcard .btn{align-self:flex-start}
 /* ============ v32 effects ============ */
 .fxlayer{position:fixed;inset:0;pointer-events:none;z-index:120;overflow:hidden}
 .fxlayer span{position:absolute;top:-8%;animation:fxfall linear forwards}
@@ -1317,7 +1321,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۴</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۶</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1756,7 +1760,18 @@ async function boot(user) {
   setTimeout(() => { if (me && !noAsk() && !call && !incoming) showGuide(false); }, 1800);
   autoFsArm();
 }
+async function joinCallById(id) {
+  if (call) return toast('یک تماس دیگر در جریان است');
+  const { data } = await sb.from('calls').select('*').eq('id', id).maybeSingle();
+  if (!data || !['ringing', 'active'].includes(data.status)) return toast('این تماس تمام شده است');
+  const { data: ps } = await sb.from('call_participants').select('user_id').eq('call_id', id).is('left_at', null);
+  if (!ps || !ps.length) return toast('این تماس تمام شده است');
+  joinCall(data);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-joincall]'); if (b) { e.preventDefault(); joinCallById(b.dataset.joincall); } });
 async function handleHash() {
+  const cm = /#call=([0-9a-f-]{36})/i.exec(location.hash);
+  if (cm) { history.replaceState(null, '', location.pathname + location.search); joinCallById(cm[1]); return; }
   const rm = /#room=([0-9a-f-]{36})/i.exec(location.hash);
   if (rm) { history.replaceState(null, '', location.pathname + location.search); enterRoom(rm[1]); return; }
   const m = /#join=([A-Za-z0-9]+)/.exec(location.hash); if (!m) return;
@@ -1838,6 +1853,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>ابزارها</b><button class="btn ghost" type="button" id="sBots">🤖 ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">🎬 اتاق تماشا</button> <button class="btn ghost" type="button" id="sGuide">📖 راهنما و دسترسی‌ها</button></div>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" type="button" id="sProf">ویرایش پروفایل</button><button class="btn" type="button" id="sClose">بستن</button></div>
+    <button class="btn ghost danger" type="button" id="sDelAcc" style="margin-top:10px;width:100%">🗑 حذف حساب کاربری</button>
   </div>`);
   const c = $('#setc');
   c.onclick = async e => {
@@ -1867,6 +1883,14 @@ function openSettings() {
   $('#sRead').onchange = e => { saveSettings({ read_receipts: e.target.checked }); if (activeId) renderMsgs(); };
   $('#sType').onchange = e => saveSettings({ typing_indicator: e.target.checked });
   $('#sClose').onclick = closeModal;
+  $('#sDelAcc').onclick = async () => {
+    const w = prompt('حذف حساب برگشت‌پذیر نیست: پروفایل، پیام‌ها و گفتگوهای شما برای همیشه پاک می‌شود.\nبرای تأیید، کلمهٔ «حذف» را بنویسید:');
+    if (w === null) return; if (w.trim() !== 'حذف') return toast('تأیید نشد؛ حساب حذف نشد');
+    const { error } = await sb.rpc('delete_my_account');
+    if (error) return toast('حذف حساب ممکن نشد: ' + error.message);
+    try { localStorage.clear(); } catch (_) {}
+    try { await sb.auth.signOut(); } catch (_) {} location.reload();
+  };
   $('#sProf').onclick = openProfile;
   $('#sBots').onclick = openBots;
   $('#sRoom').onclick = () => { closeModal(); if (room) { room.min = false; showRoom(); } else newRoomDialog(); };
@@ -2373,6 +2397,10 @@ function msgInner(m, c) {
     else if (m.kind === 'voice') body = voiceHtml(m, meta);
     else if (m.kind === 'audio') body = `<audio data-path="${att}" controls preload="none"></audio>`;
     else if (m.kind === 'file') body = `<a class="file" data-file="${att}" data-name="${esc(meta.name || 'file')}">${icon('file')}<span>${esc(meta.name || m.body || 'فایل')}${meta.size ? '<small>' + fmtSize(meta.size) + '</small>' : ''}</span></a>`;
+    else if (m.kind === 'text' && /#call=[0-9a-f-]{36}/i.test(m.body || '')) {
+      const cid = /#call=([0-9a-f-]{36})/i.exec(m.body)[1], txt = m.body.replace(/\n?پیوستن به تماس:\n?\S+/, '').trim();
+      body = `<div class="body callcard">${fmt(txt)}<button type="button" class="btn sm" data-joincall="${cid}">پیوستن به تماس</button></div>`;
+    }
     else body = `<div class="body ${m.body && BIG_EMOJI.test(m.body.trim()) ? 'bigemo' : ''}">${fmt(m.body)}</div>`;
     if (m.kind === 'image' && m.body && m.body !== meta.name) body += `<div class="body">${fmt(m.body)}</div>`;
   }
@@ -3200,7 +3228,7 @@ function showCallUI() {
   { const pb = $('#btnPip'); pb.innerHTML = icon('pip'); pb.hidden = !(call.kind === 'video' && (document.pictureInPictureEnabled || document.createElement('video').webkitSetPresentationMode)); }
   wakeOn(); mediaSessionOn();
   $('#callui').classList.toggle('grp', !!call.group);
-  $('#callAv').outerHTML = avatar(name, false).replace('class="av', 'id="callAv" class="av');
+  { const pr = call.group ? null : prof(call.otherUid); $('#callAv').outerHTML = avatar(name, false, '', pr && pr.avatar_url).replace('class="av', 'id="callAv" class="av'); }
   $('#callName').textContent = name;
   $('#btnCam').hidden = call.kind !== 'video';
   $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
@@ -3224,13 +3252,15 @@ function ensureTile(uid) {
   t = document.createElement('div');
   t.className = 'tile novid' + (uid === 'me' ? ' me' : '');
   t.dataset.uid = uid;
-  t.innerHTML = avatar(nm, false) + '<video autoplay playsinline></video><span class="tn"></span><span class="ts"></span>';
+  const pr = uid === 'me' ? me : prof(uid);
+  t.innerHTML = avatar(nm, false, '', pr && pr.avatar_url) + '<video autoplay playsinline></video><span class="tn"></span><span class="ts"></span>' + (uid === 'me' ? '' : '<audio autoplay hidden></audio>');
   t.querySelector('.tn').textContent = nm;
   const v = t.querySelector('video');
   if (uid === 'me') { v.muted = true; v.srcObject = call.stream; if (call.kind === 'video') t.classList.remove('novid'); }
   $('#tiles').appendChild(t);
   return t;
 }
+document.addEventListener('pointerdown', () => { if (call && call.needTap) { call.needTap = false; document.querySelectorAll('#tiles .tile audio').forEach(a => a.play().catch(() => {})); } }, true);
 function layoutTiles() { $('#tiles').classList.toggle('solo', !call.group); }
 function setTileStatus(peer, text) {
   if (!call) return;
@@ -3239,8 +3269,9 @@ function setTileStatus(peer, text) {
 }
 function attachStream(peer) {
   const t = tileOf(peer.uid); if (!t || !peer.stream) return;
-  const v = t.querySelector('video');
+  const v = t.querySelector('video'), au = t.querySelector('audio');
   if (v.srcObject !== peer.stream) v.srcObject = peer.stream;
+  if (au) { v.muted = true; if (au.srcObject !== peer.stream) au.srcObject = peer.stream; au.play().catch(() => { call && (call.needTap = true); }); }
   t.classList.toggle('novid', !peer.stream.getVideoTracks().some(x => x.readyState === 'live' && !x.muted));
   v.play().catch(() => {});
 }
@@ -3285,7 +3316,7 @@ function closePC(peer) {
   clearTimeout(peer.connTimer); clearTimeout(peer.kick); clearTimeout(peer.dis);
   if (peer.pc) { const pc = peer.pc; peer.pc = null; try { pc.close(); } catch (_) {} }
   peer.stream = null; peer.descSent = false; peer.outIce = []; peer.pendingIce = []; peer.making = false; peer.offerer = false;
-  const t = tileOf(peer.uid); if (t) { t.querySelector('video').srcObject = null; t.classList.add('novid'); }
+  const t = tileOf(peer.uid); if (t) { t.querySelector('video').srcObject = null; const au0 = t.querySelector('audio'); if (au0) au0.srcObject = null; t.classList.add('novid'); }
 }
 function removePeer(uid) {
   const p = call && call.peers.get(uid); if (!p) return;
@@ -3430,6 +3461,12 @@ function startQuality() {
           if (r.type === 'inbound-rtp' && r.kind === 'audio') { rec += r.packetsReceived || 0; lost += r.packetsLost || 0; }
           if (r.type === 'candidate-pair' && r.nominated && r.currentRoundTripTime) rtt = Math.max(rtt, r.currentRoundTripTime);
         });
+        const cs = p.pc.connectionState;
+        if (cs === 'connected') {
+          p.upT = p.upT || Date.now();
+          let hasIn = false; st.forEach(r => { if (r.type === 'inbound-rtp' && r.kind === 'audio') hasIn = true; });
+          if (!hasIn && Date.now() - p.upT > 9000 && !p.making && Date.now() - (p.healT || 0) > 15000) { p.healT = Date.now(); diag('heal ' + p.uid.slice(0, 4)); sendOffer(p, false).catch(() => {}); p.upT = 0; }
+        } else p.upT = 0;
         const o = prev.get(p.uid) || { rec: 0, lost: 0 }; prev.set(p.uid, { rec, lost });
         const dr = rec - o.rec, dl = lost - o.lost;
         if (dr + dl > 20) worst = Math.max(worst, Math.max(0, dl) / (dr + dl));
@@ -3521,8 +3558,8 @@ function startLoops() {
   call.poll = setInterval(async () => {
     const c = call; if (!c) return;
     c.pollN++;
-    const { data } = await sb.from('call_signals').select('*').eq('call_id', c.id).gt('id', c.minSig).order('id').limit(300);
-    if (call === c) (data || []).forEach(onSignal);
+    const { data } = await sb.from('call_signals').select('*').eq('call_id', c.id).gt('id', Math.max(c.minSig, c.cursor || 0)).order('id').limit(300);
+    if (call === c) (data || []).forEach(r => { c.cursor = Math.max(c.cursor || 0, Number(r.id)); onSignal(r); });
     if (call === c && c.pollN % 2 === 0) syncParticipants();
   }, 1500);
   syncParticipants();
@@ -3539,6 +3576,11 @@ async function startCall(kind) {
     await ensureIce();
     const { data: id, error } = await sb.rpc('start_call', { conv: c.id, kind });
     if (error) { stream.getTracks().forEach(t => t.stop()); return toast('شروع تماس ممکن نشد'); }
+    if (c.type === 'group') {
+      const link = location.origin + location.pathname + '#call=' + id;
+      const desc = (c.description || '').trim();
+      insertMsg({ kind: 'text', body: `📞 ${nameOf(me.id)} یک تماس گروهی ${kind === 'video' ? 'تصویری' : 'صوتی'} شروع کرد` + (desc ? `\n«${desc.slice(0, 120)}»` : '') + `\nپیوستن به تماس:\n${link}` }).catch(() => {});
+    }
     call = newCall({ id, kind, group: c.type === 'group', convId: c.id, stream, isCaller: true, title: convTitle(c), otherUid: c.type === 'direct' ? otherId(c) : null });
     showCallUI();
     setCallStatus('در حال زنگ زدن…');
