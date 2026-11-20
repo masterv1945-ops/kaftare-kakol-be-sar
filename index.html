@@ -3369,7 +3369,18 @@ if (cache.size > 4000) cache.clear(); cache.set(t, r); return r;
 };
 const ATTR = ['placeholder', 'title', 'aria-label', 'alt'];
 const doNode = n => {
-if (n.nodeType === 3) { const v = n.nodeValue; if (FA.test(v)) { const r = T(v); if (r !== v) n.nodeValue = r; } return; }
+if (n.nodeType === 3) {
+const v = n.nodeValue; if (!FA.test(v)) return;
+const pe = n.parentElement;
+if (pe && pe.closest('#msgs,.rp,#pinBar,#replyBar,.rqi,.sres,.mtxt')) {
+/* user-written content: never translated; only exact UI labels (e.g. "Photo", "Message deleted") are */
+const m = /^(\s*[^\u0600-\u06FF]*)([\u0600-\u06FF][^]*?)(\s*)$/.exec(v);
+if (m && dict[m[2]] != null && !pe.closest('.body,.cap,.qt,.rtxt')) n.nodeValue = m[1] + T(m[2]) + m[3];
+else if (m && dict[m[2]] != null && /^(این پیام حذف شد|پیام حذف شد|ویرایش‌شده|فوروارد شده|عکس|ویدیو|پیام صوتی|فایل|صدا|پیوستن به تماس|تصویر|ویس)$/.test(m[2])) n.nodeValue = m[1] + T(m[2]) + m[3];
+return;
+}
+const r = T(v); if (r !== v) n.nodeValue = r; return;
+}
 if (n.nodeType !== 1) return;
 const tag = n.tagName; if (tag === 'SCRIPT' || tag === 'STYLE') return;
 for (const a of ATTR) { const v = n.getAttribute(a); if (v && FA.test(v)) n.setAttribute(a, T(v)); }
