@@ -822,6 +822,7 @@ ${sw('sNotif', 'اعلان مرورگر', settings.notifications_enabled)}
 </div>
 <div class="sec"><b>حریم خصوصی</b>
 ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
+${sw('sVer', 'نمایش نشان نسخه (۱.۳۷)', !hideVer())}
 ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
 <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
 ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -852,6 +853,7 @@ if (e.target.checked && window.Notification && Notification.permission === 'defa
 saveSettings({ notifications_enabled: e.target.checked });
 };
 $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'everyone' : 'nobody' });
+$('#sVer').onchange = e => { SAFE(() => localStorage.setItem('kaftar_hidever', e.target.checked ? '' : '1')); applyVer(); };
 $('#sApx').onchange = async e => {
 const v = e.target.checked, { error } = await sb.from('profiles').update({ seen_approx: v }).eq('id', me.id);
 if (error) { e.target.checked = !v; return toast('ذخیره نشد: ' + error.message); }
@@ -948,6 +950,9 @@ const draftKey = id => 'kaftar_draft_' + id;
 const getDraft = id => SAFE(() => localStorage.getItem(draftKey(id)) || '', '');
 const setDraft = (id, v) => SAFE(() => { v ? localStorage.setItem(draftKey(id), v) : localStorage.removeItem(draftKey(id)); });
 document.addEventListener('input', e => { if (e.target && e.target.id === 'txt' && activeId && !editing) setDraft(activeId, e.target.value.trim() ? e.target.value : ''); });
+const hideVer = () => SAFE(() => localStorage.getItem('kaftar_hidever') === '1', false);
+const applyVer = () => { const v = document.querySelector('.vorb'); if (v) v.hidden = hideVer(); };
+applyVer();
 function previewOf(c) {
 if (c.id !== activeId) { const d = getDraft(c.id); if (d) return '✏️ پیش‌نویس: ' + d.slice(0, 60); }
 const ty = typingMap[c.id];
