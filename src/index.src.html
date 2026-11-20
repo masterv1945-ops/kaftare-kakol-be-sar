@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
 <head>
+<script>try{if(localStorage.getItem('kaftar_lang')==='en'){var h=document.documentElement;h.lang='en';h.dir='ltr';h.style.visibility='hidden';setTimeout(function(){h.style.visibility=''},2500)}}catch(e){}</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#1f8a86">
@@ -935,6 +936,8 @@ label.pw input{padding-right:46px}
 .vsk button{font-size:11.5px;padding:3px 10px;border-radius:999px;background:color-mix(in oklab,currentColor 12%,transparent);color:inherit;border:0;opacity:.85}
 .callcard{display:flex;flex-direction:column;gap:8px;white-space:pre-wrap}
 .callcard .btn{align-self:flex-start}
+html[dir=ltr] .back svg,html[dir=ltr] #lbPrev svg,html[dir=ltr] #lbNext svg{transform:scaleX(-1)}
+html[dir=ltr] .m.mine{border-end-end-radius:6px}
 /* ============ v32 effects ============ */
 .fxlayer{position:fixed;inset:0;pointer-events:none;z-index:120;overflow:hidden}
 .fxlayer span{position:absolute;top:-8%;animation:fxfall linear forwards}
@@ -1307,7 +1310,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 <ellipse cx="270" cy="204" rx="18" ry="7" fill="#fff" opacity=".28" transform="rotate(-28 270 204)" filter="url(#pgSoft2)"/>
 </g></g></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۳۷" title="نسخه ۱٫۳۷">۱.۳۷</div>
+<div class="vorb" aria-label="نسخه ۱٫۳۸" title="نسخه ۱٫۳۸">۱.۳۸</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1475,17 +1478,20 @@ function toast(t, ms) {
   const box = $('#toast'); box.innerHTML = `<span>${esc(t)}</span>`;
   clearTimeout(toastT); toastT = setTimeout(() => box.innerHTML = '', ms || 3200);
 }
-const fmtTime = d => d ? new Date(d).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }) : '';
+const LANG = SAFE0(() => localStorage.getItem('kaftar_lang') === 'en' ? 'en' : 'fa', 'fa'), LOC = LANG === 'en' ? 'en-US' : 'fa-IR';
+function SAFE0(f, d) { try { return f(); } catch (_) { return d; } }
+window.__LANG = LANG;
+const fmtTime = d => d ? new Date(d).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }) : '';
 const fmtSeen = d => {
   const t = new Date(d), n = new Date(), day0 = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
   const diff = Math.round((day0(n) - day0(t)) / 864e5), tm = fmtTime(d);
   if (diff <= 0) return 'امروز ' + tm;
   if (diff === 1) return 'دیروز ' + tm;
-  if (diff < 7) return t.toLocaleDateString('fa-IR', { weekday: 'long' }) + ' ' + tm;
-  return t.toLocaleDateString('fa-IR', { day: 'numeric', month: 'long' }) + (t.getFullYear() !== n.getFullYear() ? ' ' + t.toLocaleDateString('fa-IR', { year: 'numeric' }) : '') + '، ' + tm;
+  if (diff < 7) return t.toLocaleDateString(LOC, { weekday: 'long' }) + ' ' + tm;
+  return t.toLocaleDateString(LOC, { day: 'numeric', month: 'long' }) + (t.getFullYear() !== n.getFullYear() ? ' ' + t.toLocaleDateString(LOC, { year: 'numeric' }) : '') + '، ' + tm;
 };
 const seenApprox = d => { const h = (Date.now() - new Date(d)) / 36e5; return h < 72 ? 'اخیراً' : h < 24 * 7 ? 'این هفته' : h < 24 * 30 ? 'این ماه' : 'خیلی وقت پیش'; };
-const fmtDay = d => new Date(d).toLocaleDateString('fa-IR', { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtDay = d => new Date(d).toLocaleDateString(LOC, { weekday: 'long', day: 'numeric', month: 'long' });
 const dayKey = d => new Date(d).toDateString();
 const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
 function avatar(name, online, cls = '', url = '') {
@@ -1845,6 +1851,8 @@ function openSettings() {
     <h3 style="margin:0 0 12px">تنظیمات</h3>
     <div class="sec"><b>ظاهر</b>
       <div class="seg3" id="thSeg">${[['system', 'خودکار'], ['light', 'روشن'], ['dark', 'تاریک']].map(([v, t]) => `<button type="button" data-th="${v}" class="${settings.theme === v ? 'on' : ''}">${t}</button>`).join('')}</div>
+      <b style="display:block;margin:10px 0 4px">🌐 Language</b>
+      <div class="seg3" id="lgSeg"><button type="button" data-lg="fa" class="${LANG === 'fa' ? 'on' : ''}">فارسی</button><button type="button" data-lg="en" class="${LANG === 'en' ? 'on' : ''}">English</button></div>
       <div class="swatches">${ACCENTS.map(c => `<button type="button" data-ac="${c}" style="background:${c}" class="${(ui.accent || ACCENTS[0]) === c ? 'on' : ''}" aria-label="رنگ"></button>`).join('')}</div>
       <label class="f">اندازه متن: <span id="fsv">${ui.font || 15}</span><input type="range" id="fs" min="13" max="20" value="${ui.font || 15}"></label>
     </div>
@@ -1857,7 +1865,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۳۷)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۳۸)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1875,6 +1883,7 @@ function openSettings() {
     if (t.dataset.ac) { ui.accent = t.dataset.ac === ACCENTS[0] ? '' : t.dataset.ac; saveUi(); c.querySelectorAll('[data-ac]').forEach(b => b.classList.toggle('on', b === t)); }
     if (t.dataset.wall !== undefined) { ui.wall = t.dataset.wall; saveUi(); c.querySelectorAll('[data-wall]').forEach(b => b.classList.toggle('on', b === t)); }
   };
+  $('#lgSeg').onclick = e => { const b = e.target.closest('[data-lg]'); if (!b || b.dataset.lg === LANG) return; SAFE(() => localStorage.setItem('kaftar_lang', b.dataset.lg)); location.reload(); };
   $('#fs').oninput = e => { ui.font = +e.target.value; $('#fsv').textContent = ui.font; saveUi(); };
   $('#wallF').onchange = async e => {
     const f = e.target.files[0]; if (!f) return;
@@ -4432,6 +4441,47 @@ function fit(){const h=Math.round(vv.height);document.documentElement.style.setP
   if(vv.offsetTop>0||window.scrollY>0)window.scrollTo(0,0);
   const m=document.querySelector('#msgs');if(m&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest('.composer')){clearTimeout(t);t=setTimeout(()=>{m.scrollTop=m.scrollHeight},60)}}
 vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);fit()})();
+
+/* ---------- English translation layer ---------- */
+if (window.__LANG === 'en') (async () => {
+  const done = () => { document.documentElement.style.visibility = ''; };
+  try {
+    const dict = await (await fetch('lang/en.json')).json();
+    const keys = Object.keys(dict).sort((a, b) => b.length - a.length);
+    const B = '(?<![\\u0600-\\u06FF\\u200c])', A = '(?![\\u0600-\\u06FF\\u200c])';
+    const RE = new RegExp(keys.map(k => B + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + A).join('|'), 'g');
+    const FA = /[؀-ۿ]/, cache = new Map();
+    const D = { '۰': 0, '۱': 1, '۲': 2, '۳': 3, '۴': 4, '۵': 5, '۶': 6, '۷': 7, '۸': 8, '۹': 9, '٠': 0, '١': 1, '٢': 2, '٣': 3, '٤': 4, '٥': 5, '٦': 6, '٧': 7, '٨': 8, '٩': 9 };
+    const T = t => {
+      if (!FA.test(t)) return t; let r = cache.get(t); if (r != null) return r;
+      r = t.replace(RE, m => dict[m]).replace(/[۰-۹٠-٩]/g, c => D[c]).replace(/٫/g, '.').replace(/،/g, ',').replace(/؟/g, '?').replace(/[«»]/g, '"').replace(/‌/g, '');
+      if (cache.size > 4000) cache.clear(); cache.set(t, r); return r;
+    };
+    const ATTR = ['placeholder', 'title', 'aria-label', 'alt'];
+    const doNode = n => {
+      if (n.nodeType === 3) { const v = n.nodeValue; if (FA.test(v)) { const r = T(v); if (r !== v) n.nodeValue = r; } return; }
+      if (n.nodeType !== 1) return;
+      const tag = n.tagName; if (tag === 'SCRIPT' || tag === 'STYLE') return;
+      for (const a of ATTR) { const v = n.getAttribute(a); if (v && FA.test(v)) n.setAttribute(a, T(v)); }
+      for (let c = n.firstChild; c; c = c.nextSibling) doNode(c);
+    };
+    const mo = new MutationObserver(ms => {
+      mo.disconnect();
+      for (const m of ms) {
+        if (m.type === 'characterData') doNode(m.target);
+        else if (m.type === 'attributes') { const v = m.target.getAttribute(m.attributeName); if (v && FA.test(v)) m.target.setAttribute(m.attributeName, T(v)); }
+        else m.addedNodes.forEach(doNode);
+      }
+      mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
+    });
+    doNode(document.body); document.title = T(document.title);
+    mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
+    const pc = window.confirm.bind(window), pp = window.prompt.bind(window), pa = window.alert.bind(window);
+    window.confirm = m => pc(T(String(m))); window.prompt = (m, d) => pp(T(String(m)), d); window.alert = m => pa(T(String(m)));
+    window.__T = T;
+  } catch (e) { console.warn('translation failed', e); }
+  done();
+})();
 </script>
 </body>
 </html>
