@@ -887,13 +887,13 @@ label.pw input{padding-right:46px}
 #callui:not(.aud).mini #callinfo{display:block;position:absolute;top:8px;inset-inline:6px;margin:0;padding:0;text-align:center}
 #callui:not(.aud).mini #callinfo .av,#callui:not(.aud).mini #callinfo h2{display:none}
 #callui:not(.aud).mini #callinfo p{display:inline-block;margin:0;background:rgba(0,0,0,.5);padding:1px 10px;border-radius:999px;font-size:11.5px;font-variant-numeric:tabular-nums}
-#callui.mini.aud{width:214px;height:68px;border-radius:40px}
+#callui.mini.aud{width:244px;height:68px;border-radius:40px}
 #callui.mini.aud #tiles{display:none}
 #callui.mini.aud #callinfo{display:flex!important;align-items:center;gap:10px;margin:0;padding:0 14px;height:100%;text-align:start;position:absolute;inset:0;inset-inline-end:92px}
 #callui.mini.aud #callinfo .av{width:42px;height:42px;font-size:17px;margin:0;flex:none;animation:none}
-#callui.mini.aud #callinfo h2{font-size:13.5px;max-width:70px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#callui.mini.aud #callinfo p{font-size:11.5px;margin:0;font-variant-numeric:tabular-nums}
-#callui.mini.aud #callinfo>div{min-width:0}
+#callui.mini.aud #callinfo h2{font-size:13.5px;max-width:92px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callui.mini.aud #callinfo p{font-size:11.5px;margin:0;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callui.mini.aud #callinfo>div{min-width:0;flex:1}
 #callui.mini.aud #callbar{inset:0 auto 0 8px;align-items:center;width:84px;flex-direction:row-reverse}
 #callui.mini.aud #callbar .cb{width:36px;height:36px}
 @media (max-width:760px){#callui.mini{bottom:calc(84px + env(safe-area-inset-bottom,0px));left:auto;right:8px;width:132px;height:178px}}
@@ -1321,7 +1321,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
       <div class="err" id="authErr" role="alert"></div>
       <button class="btn block" id="authBtn" type="submit">ورود</button>
     </form>
-    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۶</p>
+    <p class="sub" style="font-size:11px;margin:16px 0 0;text-align:center">نسخه ۳۷</p>
     <form id="otpForm" hidden autocomplete="off">
       <p class="sub" id="otpInfo"></p>
       <label class="f">کد تأیید
@@ -1886,7 +1886,10 @@ function openSettings() {
   $('#sDelAcc').onclick = async () => {
     const w = prompt('حذف حساب برگشت‌پذیر نیست: پروفایل، پیام‌ها و گفتگوهای شما برای همیشه پاک می‌شود.\nبرای تأیید، کلمهٔ «حذف» را بنویسید:');
     if (w === null) return; if (w.trim() !== 'حذف') return toast('تأیید نشد؛ حساب حذف نشد');
-    const { error } = await sb.rpc('delete_my_account');
+    toast('در حال حذف حساب…');
+    let error = null;
+    try { const r = await sb.functions.invoke('delete-account'); error = r.error || (r.data && r.data.error ? new Error(r.data.error) : null); } catch (ex) { error = ex; }
+    if (error) { const r2 = await sb.rpc('delete_my_account'); error = r2.error; }
     if (error) return toast('حذف حساب ممکن نشد: ' + error.message);
     try { localStorage.clear(); } catch (_) {}
     try { await sb.auth.signOut(); } catch (_) {} location.reload();
