@@ -3236,8 +3236,12 @@ async function getMedia(kind) {
   const tries = kind === 'video'
     ? [{ audio: aud, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 20, max: 24 } } }, { audio: aud, video: true }]
     : [{ audio: aud }, { audio: true }];
-  for (const c of tries) { try { return await navigator.mediaDevices.getUserMedia(c); } catch (_) {} }
-  toast(kind === 'video' ? 'دسترسی به دوربین یا میکروفون داده نشد' : 'دسترسی به میکروفون داده نشد');
+  let err = null;
+  for (const c of tries) { try { return await navigator.mediaDevices.getUserMedia(c); } catch (e) { err = e; } }
+  const nm = err && err.name;
+  toast(nm === 'NotReadableError' || nm === 'AbortError' ? 'میکروفون یا دوربین در اختیار برنامهٔ دیگری است؛ آن برنامه را ببندید و دوباره امتحان کنید'
+    : nm === 'NotFoundError' ? 'میکروفون پیدا نشد؛ اتصال هدفون یا میکروفون را بررسی کنید'
+    : (kind === 'video' ? 'دسترسی به دوربین یا میکروفون داده نشد' : 'دسترسی به میکروفون داده نشد'));
   return null;
 }
 
@@ -3476,11 +3480,32 @@ async function handleSignal(peer, row) {
 }
 
 /* adaptive quality: watch loss/RTT; shrink video, then drop it to protect the voice */
+/* microphone watchdog: if the OS mutes/kills the mic track (other app, bluetooth switch, screen lock) take a fresh one */
+async function micCheck(c) {
+  const t = c.stream && c.stream.getAudioTracks()[0];
+  if (!t || c.micBusy || Date.now() - (c.micT || 0) < 6000) return;
+  if (t.readyState !== 'ended' && !t.muted) { c.micFails = 0; return; }
+  c.micBusy = true; c.micT = Date.now();
+  try {
+    const ns = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+    const nt = ns.getAudioTracks()[0]; nt.enabled = t.enabled;
+    c.stream.removeTrack(t); try { t.stop(); } catch (_) {} c.stream.addTrack(nt);
+    for (const p of c.peers.values()) if (p.pc) for (const sn of p.pc.getSenders()) if (sn.track ? sn.track.kind === 'audio' : false) sn.replaceTrack(nt).catch(() => {});
+    if (c.micFails > 0) toast('میکروفون دوباره وصل شد');
+    c.micFails = 0;
+  } catch (e) {
+    c.micFails = (c.micFails || 0) + 1;
+    if (c.micFails === 1 || c.micFails % 5 === 0) toast('میکروفون صدا نمی‌گیرد؛ برنامهٔ دیگری که از میکروفون استفاده می‌کند را ببندید');
+  }
+  c.micBusy = false;
+}
+document.addEventListener('visibilitychange', () => { if (call && document.visibilityState === 'visible') { call.micT = 0; micCheck(call); } });
 function startQuality() {
   const c = call; clearInterval(c.qIv); c.qBad = 0; c.qGood = 0; c.vq = c.vq || 0;
   const prev = new Map();
   c.qIv = setInterval(async () => {
     if (call !== c) return;
+    micCheck(c);
     let worst = 0, rtt = 0;
     for (const p of c.peers.values()) {
       if (!p.pc) continue;
