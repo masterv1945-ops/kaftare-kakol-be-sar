@@ -877,7 +877,7 @@ label.pw input{padding-right:46px}
 .cb.sm svg{width:20px;height:20px}
 #callui.mini{inset:auto;left:12px;right:auto;top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:156px;height:208px;border-radius:20px;overflow:hidden;z-index:95;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 14px 40px rgba(0,0,0,.55),0 0 0 1.5px rgba(255,255,255,.18);animation:none}
 #callui.mini.snap{transition:left .25s var(--ease),top .25s var(--ease)}
-#callui.mini #calltop,#callui.mini #diag,#callui.mini #gtop,#callui.mini .tile .tn,#callui.mini #btnCam,#callui.mini #btnShare{display:none!important}
+#callui.mini #btnFlip,#callui.mini #btnSpk,#callui.mini #spkPop,#callui.mini #calltop,#callui.mini #diag,#callui.mini #gtop,#callui.mini .tile .tn,#callui.mini #btnCam,#callui.mini #btnShare{display:none!important}
 #callui.mini #tiles{display:block;padding:0}
 #callui.mini .tile{position:absolute;inset:0;border-radius:0;box-shadow:none;animation:none}
 #callui.mini .tile.me{display:none}
@@ -1031,6 +1031,14 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 /* version label: tiny translucent text */
 .vorb{position:fixed;z-index:40;left:26px;right:auto;bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--ink);opacity:.4;pointer-events:none;direction:ltr;text-shadow:0 0 6px var(--bg,transparent)}
 @media (max-width:760px){body:has(#app:not([hidden])) .vorb{bottom:calc(82px + env(safe-area-inset-bottom,0px))}}
+#tiles .tile.me.flip video{transform:scaleX(-1)}
+#spkPop{position:relative;z-index:3;align-self:center;width:min(92vw,340px);margin-bottom:8px;padding:12px 14px;border-radius:20px;background:rgba(20,20,30,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;border:1px solid rgba(255,255,255,.14)}
+#spkPop[hidden]{display:none!important}
+.spv{display:flex;align-items:center;gap:10px;direction:ltr}.spv .i{width:22px;height:22px;flex:none}.spv input{flex:1;accent-color:var(--accent,#2ec4b6)}.spv b{min-width:44px;text-align:end;font-size:13px;direction:rtl}
+#spkOut{display:flex;flex-direction:column;gap:6px;margin-top:8px}#spkOut button{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-align:start;font-size:14px}#spkOut button.on{background:var(--accent,#2ec4b6);color:var(--accent-ink,#fff)}
+#spkPop .hint{margin:8px 2px 0;font-size:12px;opacity:.75;color:#fff}
+#btnSpk.on{background:var(--accent);color:var(--accent-ink)}
+@media (max-width:400px){.cb{width:46px!important;height:46px!important}#callbar{gap:6px!important;padding:8px 8px!important}}
 </style>
 </head>
 <body>
@@ -1050,7 +1058,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۴۵" title="نسخه ۱٫۴۵">۱.۴۵</div>
+<div class="vorb" aria-label="نسخه ۱٫۴۶" title="نسخه ۱٫۴۶">۱.۴۶</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1135,9 +1143,12 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <p id="callStatus"></p></div>
   </div>
   <div id="diag" dir="ltr"></div>
+  <div id="spkPop" hidden><label class="spv"><span id="spkIc"></span><input id="spkVol" type="range" min="0" max="100" step="1" aria-label="میزان صدا"><b id="spkPct">۱۰۰٪</b></label><div id="spkOut"></div><p id="spkHint" class="hint"></p></div>
   <div id="callbar">
     <button class="cb" id="btnMute" type="button" aria-label="میکروفون"></button>
     <button class="cb" id="btnCam" type="button" aria-label="دوربین"></button>
+    <button class="cb" id="btnFlip" type="button" aria-label="برگرداندن دوربین" hidden></button>
+    <button class="cb" id="btnSpk" type="button" aria-label="صدا و بلندگو"></button>
     <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
     <button class="cb hang" id="btnHang" type="button" aria-label="قطع تماس"></button>
   </div>
@@ -1190,6 +1201,8 @@ addEventListener('unhandledrejection', e => { try { toast('خطا: ' + ((e.reaso
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ICONS = {
+  speaker: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  flip: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>',
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
   expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
   shrink: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
@@ -1496,6 +1509,8 @@ async function boot(user) {
   $('#newGroup').innerHTML = icon('users') + ' گروه جدید';
   $('#btnMute').innerHTML = icon('mic');
   $('#btnCam').innerHTML = icon('video');
+  $('#btnFlip').innerHTML = icon('flip');
+  $('#btnSpk').innerHTML = icon('speaker'); $('#spkIc').innerHTML = icon('speaker');
   $('#btnHang').innerHTML = icon('phone');
   $('#incNo').innerHTML = icon('phone');
   $('#incYes').innerHTML = icon('phone');
@@ -1605,7 +1620,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۵)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۶)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -3003,9 +3018,10 @@ function showCallUI() {
   $('#callui').classList.toggle('grp', !!call.group);
   { const pr = call.group ? null : prof(call.otherUid); $('#callAv').outerHTML = avatar(name, false, '', pr && pr.avatar_url).replace('class="av', 'id="callAv" class="av'); }
   $('#callName').textContent = name;
-  $('#btnCam').hidden = call.kind !== 'video';
+  $('#btnCam').hidden = false; $('#btnFlip').hidden = true; $('#spkPop').hidden = true; call.facing = call.facing || 'user';
   $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
-  $('#btnCam').className = 'cb'; $('#btnCam').innerHTML = icon('video');
+  $('#btnCam').className = call.kind === 'video' ? 'cb' : 'cb off'; $('#btnCam').innerHTML = icon(call.kind === 'video' ? 'video' : 'videoOff');
+  setTimeout(updFlip, 400);
   { const b = $('#btnShare'); b.className = 'cb'; b.innerHTML = icon('screen'); b.hidden = false; }
   $('#callinfo').hidden = false;
   $('#tiles').innerHTML = '';
@@ -3044,7 +3060,7 @@ function attachStream(peer) {
   const t = tileOf(peer.uid); if (!t || !peer.stream) return;
   const v = t.querySelector('video'), au = t.querySelector('audio');
   if (v.srcObject !== peer.stream) v.srcObject = peer.stream;
-  if (au) { v.muted = true; if (au.srcObject !== peer.stream) au.srcObject = peer.stream; au.play().catch(() => { call && (call.needTap = true); }); }
+  if (au) { v.muted = true; applyVol(au); if (au.srcObject !== peer.stream) au.srcObject = peer.stream; au.play().catch(() => { call && (call.needTap = true); }); }
   t.classList.toggle('novid', !peer.stream.getVideoTracks().some(x => x.readyState === 'live' && !x.muted));
   v.play().catch(() => {});
 }
@@ -3137,6 +3153,7 @@ function makePC(peer) {
     if (peer.pc !== pc) return;
     peer.stream = peer.stream || new MediaStream();
     if (!peer.stream.getTracks().includes(e.track)) peer.stream.addTrack(e.track);
+    if (e.track.kind === 'video' && call.kind !== 'video') { call.kind = 'video'; $('#tiles').classList.remove('audio'); if (!call.group && !$('#callui').classList.contains('mini')) $('#callinfo').hidden = true; const pb = $('#btnPip'); pb.hidden = !(document.pictureInPictureEnabled || document.createElement('video').webkitSetPresentationMode); }
     e.track.addEventListener('mute', () => attachStream(peer)); e.track.addEventListener('unmute', () => attachStream(peer));
     attachStream(peer);
   };
@@ -3495,7 +3512,7 @@ function mediaSessionOn() {
   const set = (a, f) => { try { ms.setActionHandler(a, f); } catch (_) {} };
   set('hangup', () => endCall('hangup'));
   set('togglemicrophone', () => $('#btnMute').click());
-  set('togglecamera', () => { if (call && call.kind === 'video') $('#btnCam').click(); });
+  set('togglecamera', () => { if (call) $('#btnCam').click(); });
   set('enterpictureinpicture', () => enterPip(true));
 }
 function mediaSessionOff() {
@@ -3557,15 +3574,96 @@ $('#btnMute').onclick = () => {
   $('#btnMute').innerHTML = icon(t.enabled ? 'mic' : 'micOff');
   syncMedia();
 };
-$('#btnCam').onclick = () => {
+$('#btnCam').onclick = async () => {
   if (!call) return;
-  const t = call.stream.getVideoTracks()[0]; if (!t) return;
+  const t = call.stream.getVideoTracks()[0];
+  if (!t) return camOn();
   call.autoVidOff = false; t.enabled = !t.enabled;
   $('#btnCam').className = 'cb' + (t.enabled ? '' : ' off');
   $('#btnCam').innerHTML = icon(t.enabled ? 'video' : 'videoOff');
   const me_ = tileOf('me'); if (me_) me_.classList.toggle('novid', !t.enabled);
   syncMedia();
 };
+/* turn the camera on in a call that started as voice-only (also works for the other side: they just receive a new video track) */
+function camToVideoUI() {
+  call.kind = 'video'; $('#tiles').classList.remove('audio');
+  if (!call.group && !$('#callui').classList.contains('mini')) $('#callinfo').hidden = true;
+  const pb = $('#btnPip'); pb.hidden = !(document.pictureInPictureEnabled || document.createElement('video').webkitSetPresentationMode);
+  tileOf('me') && (tileOf('me').querySelector('video').srcObject = call.stream);
+}
+async function camOn() {
+  if (call.camBusy) return; call.camBusy = true;
+  try {
+    let st;
+    try { st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: call.facing || 'user', width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 20, max: 24 } } }); }
+    catch (e) { st = await navigator.mediaDevices.getUserMedia({ video: true }); }
+    const vt = st.getVideoTracks()[0]; if (!vt || !call) { st.getTracks().forEach(x => x.stop()); return; }
+    call.stream.addTrack(vt);
+    camToVideoUI();
+    const me_ = tileOf('me'); if (me_) me_.classList.remove('novid');
+    for (const peer of call.peers.values()) {
+      const pc = peer.pc; if (!pc) continue;
+      if (call.share) continue;
+      let need = false;
+      const vs = pc.getSenders().find(x => x.track && x.track.kind === 'video');
+      if (vs) vs.replaceTrack(vt).catch(() => {});
+      else {
+        const tr = pc.getTransceivers().find(x => x.receiver && x.receiver.track && x.receiver.track.kind === 'video' && !x.sender.track);
+        if (tr) { tr.sender.replaceTrack(vt).catch(() => {}); try { tr.direction = 'sendrecv'; } catch (_) {} } else pc.addTrack(vt, call.stream);
+        need = true;
+      }
+      setVideoQuality(pc, call.vq || 0);
+      if (need && peer.descSent) sendOffer(peer, 'reneg').catch(e => diag('cam: ' + (e && e.message || e)));
+    }
+    $('#btnCam').className = 'cb'; $('#btnCam').innerHTML = icon('video');
+    updFlip(); syncMedia();
+  } catch (e) {
+    const nm = e && e.name;
+    toast(nm === 'NotAllowedError' ? 'دسترسی به دوربین داده نشد' : nm === 'NotFoundError' ? 'دوربین پیدا نشد' : 'دوربین باز نشد؛ شاید برنامهٔ دیگری از آن استفاده می‌کند');
+  } finally { if (call) call.camBusy = false; }
+}
+async function updFlip() {
+  const b = $('#btnFlip'); if (!b) return;
+  let n = 0; try { n = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput').length; } catch (_) {}
+  b.hidden = !(call && call.stream.getVideoTracks()[0] && (n > 1 || /Android|iPhone|iPad/i.test(navigator.userAgent)));
+}
+$('#btnFlip').onclick = async () => {
+  if (!call || call.camBusy) return;
+  const old = call.stream.getVideoTracks()[0]; if (!old) return;
+  call.camBusy = true;
+  const was = old.enabled, prev = call.facing || 'user', nf = prev === 'user' ? 'environment' : 'user';
+  const open = f => navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: f }, width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 20, max: 24 } } });
+  try {
+    old.stop();   // phones often cannot open two cameras at once
+    let st; try { st = await open(nf); } catch (e) { st = await open(prev); call.facing = prev; toast('این دوربین باز نشد'); }
+    const nt = st.getVideoTracks()[0]; if (!st.getVideoTracks()[0]) throw new Error('no track');
+    if (call.facing !== prev) { /* reverted */ } else call.facing = nf;
+    nt.enabled = was;
+    call.stream.removeTrack(old); call.stream.addTrack(nt);
+    if (!call.share) for (const peer of call.peers.values()) if (peer.pc) for (const sn of peer.pc.getSenders()) if (sn.track && sn.track.kind === 'video') sn.replaceTrack(nt).catch(() => {});
+    const me_ = tileOf('me'); if (me_ && !call.share) { me_.querySelector('video').srcObject = call.stream; me_.classList.toggle('flip', call.facing === 'user'); }
+  } catch (e) { toast('برگرداندن دوربین ممکن نشد'); }
+  if (call) call.camBusy = false;
+};
+/* ---- speaker / volume ---- */
+const getVol = () => { try { const v = parseFloat(localStorage.getItem('kaftar_vol')); return isNaN(v) ? 1 : Math.min(1, Math.max(0, v)); } catch (_) { return 1; } };
+function applyVol(a) { try { a.volume = getVol(); } catch (_) {} if (call && call.sink && a.setSinkId) a.setSinkId(call.sink).catch(() => {}); }
+function applyAllVol() { document.querySelectorAll('#tiles .tile audio').forEach(applyVol); }
+async function renderSpk() {
+  const v = Math.round(getVol() * 100); $('#spkVol').value = v; $('#spkPct').textContent = fa(v) + '٪';
+  const box = $('#spkOut'); box.innerHTML = ''; let outs = [];
+  try { if (HTMLMediaElement.prototype.setSinkId) outs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput'); } catch (_) {}
+  if (outs.length > 1) {
+    outs.forEach(d => { const b = document.createElement('button'); b.type = 'button'; b.textContent = d.label || 'خروجی صدا'; if ((call.sink || 'default') === d.deviceId) b.className = 'on';
+      b.onclick = () => { call.sink = d.deviceId; applyAllVol(); renderSpk(); }; box.appendChild(b); });
+    $('#spkHint').textContent = '';
+  } else $('#spkHint').textContent = 'مرورگر گوشی اجازهٔ جابه‌جایی بین بلندگو و گوشی را نمی‌دهد؛ صدا از خروجی فعلی گوشی (بلندگو، یا هدفون در صورت اتصال) پخش می‌شود و با دکمه‌های صدای گوشی هم تنظیم می‌شود.';
+}
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+$('#btnSpk').onclick = e => { e.stopPropagation(); const p = $('#spkPop'); p.hidden = !p.hidden; $('#btnSpk').classList.toggle('on', !p.hidden); if (!p.hidden) renderSpk(); };
+$('#spkPop').addEventListener('click', e => e.stopPropagation());
+$('#spkVol').oninput = e => { const v = +e.target.value / 100; try { localStorage.setItem('kaftar_vol', String(v)); } catch (_) {} $('#spkPct').textContent = fa(e.target.value) + '٪'; applyAllVol(); };
+document.addEventListener('pointerdown', e => { const p = $('#spkPop'); if (p && !p.hidden && !e.target.closest('#spkPop,#btnSpk')) { p.hidden = true; $('#btnSpk').classList.remove('on'); } }, true);
 $('#callui').addEventListener('click', () => document.querySelectorAll('#tiles video').forEach(v => v.play().catch(() => {})));
 /* ---------- screen share (with system audio) ---------- */
 function applyShare(pc, reneg) {   // put the shared screen (and mixed audio) on this connection; returns true if renegotiation is needed
