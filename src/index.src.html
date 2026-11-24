@@ -1029,7 +1029,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .lowfx #auth::before,.lowfx #auth::after{filter:none;opacity:.18}
 
 /* version label: tiny translucent text */
-.vorb{position:fixed;z-index:40;left:10px;right:auto;bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--ink);opacity:.4;pointer-events:none;direction:ltr;text-shadow:0 0 6px var(--bg,transparent)}
+.vorb{position:fixed;z-index:40;left:26px;right:auto;bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--ink);opacity:.4;pointer-events:none;direction:ltr;text-shadow:0 0 6px var(--bg,transparent)}
 @media (max-width:760px){body:has(#app:not([hidden])) .vorb{bottom:calc(82px + env(safe-area-inset-bottom,0px))}}
 </style>
 </head>
@@ -1050,7 +1050,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۴۳" title="نسخه ۱٫۴۳">۱.۴۳</div>
+<div class="vorb" aria-label="نسخه ۱٫۴۴" title="نسخه ۱٫۴۴">۱.۴۴</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1605,7 +1605,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۳)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۴)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
