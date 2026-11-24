@@ -37,7 +37,7 @@
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 
-<div class="vorb" aria-label="نسخه ۱٫۴۶" title="نسخه ۱٫۴۶">۱.۴۶</div>
+<div class="vorb" aria-label="نسخه ۱٫۴۷" title="نسخه ۱٫۴۷">۱.۴۷</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -583,7 +583,7 @@ ${sw('sNotif', 'اعلان مرورگر', settings.notifications_enabled)}
 </div>
 <div class="sec"><b>حریم خصوصی</b>
 ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-${sw('sVer', 'نمایش نشان نسخه (۱.۴۶)', !hideVer())}
+${sw('sVer', 'نمایش نشان نسخه (۱.۴۷)', !hideVer())}
 ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
 <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
 ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -2209,6 +2209,23 @@ p.upT = p.upT || Date.now();
 let hasIn = false; st.forEach(r => { if (r.type === 'inbound-rtp' && r.kind === 'audio') hasIn = true; });
 if (!hasIn && Date.now() - p.upT > 9000 && !p.making && Date.now() - (p.healT || 0) > 15000) { p.healT = Date.now(); diag('heal ' + p.uid.slice(0, 4)); sendOffer(p, false).catch(() => {}); p.upT = 0; }
 } else p.upT = 0;
+/* one-way audio guard: connected but no audio packets flowing in or out for ~12s -> re-send the mic track and renegotiate */
+{ let outP = 0; st.forEach(r => { if (r.type === 'outbound-rtp' && r.kind === 'audio') outP += r.packetsSent || 0; });
+const q = p.flow || (p.flow = { rec: -1, out: -1, inS: 0, outS: 0 });
+if (cs === 'connected') {
+q.inS = (q.rec >= 0 && rec === q.rec) ? q.inS + 1 : 0; q.outS = (q.out >= 0 && outP === q.out) ? q.outS + 1 : 0;
+const mic = c.stream.getAudioTracks()[0];
+if (q.outS >= 3 && mic && mic.readyState === 'live' && mic.enabled && Date.now() - (p.flowT || 0) > 20000) {
+p.flowT = Date.now(); q.outS = 0; diag('no-out ' + p.uid.slice(0, 4));
+p.pc.getSenders().forEach(sn => { if (sn.track && sn.track.kind === 'audio') sn.replaceTrack(mic).catch(() => {}); });
+if (!p.making) sendOffer(p, false).catch(() => {});
+} else if (q.inS >= 3 && Date.now() - (p.flowT || 0) > 20000) {
+p.flowT = Date.now(); q.inS = 0; diag('no-in ' + p.uid.slice(0, 4));
+if (!p.making) restartIce(p, 'flow');
+}
+} else { q.inS = 0; q.outS = 0; }
+q.rec = rec; q.out = outP; }
+{ const t_ = tileOf(p.uid), au_ = t_ && t_.querySelector('audio'); if (au_ && au_.srcObject && au_.paused) au_.play().catch(() => { c.needTap = true; }); }
 const o = prev.get(p.uid) || { rec: 0, lost: 0 }; prev.set(p.uid, { rec, lost });
 const dr = rec - o.rec, dl = lost - o.lost;
 if (dr + dl > 20) worst = Math.max(worst, Math.max(0, dl) / (dr + dl));
