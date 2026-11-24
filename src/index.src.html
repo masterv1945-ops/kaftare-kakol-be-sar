@@ -1028,17 +1028,9 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .lowfx .empty .hi,.lowfx #auth::before,.lowfx #auth::after,.lowfx .av .dot{animation:none}
 .lowfx #auth::before,.lowfx #auth::after{filter:none;opacity:.18}
 
-/* version badge: crystal-clear water glass */
-.vorb{position:fixed;z-index:40;left:10px;right:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:62px;height:30px;border-radius:11px;display:grid;place-items:center;pointer-events:none;overflow:hidden;font-size:13px;font-weight:800;color:var(--ink);letter-spacing:.3px;font-variant-numeric:tabular-nums;direction:ltr;
-  background:linear-gradient(180deg,rgba(255,255,255,.22) 0,rgba(255,255,255,.05) 45%,rgba(255,255,255,0) 55%,rgba(255,255,255,.10) 100%);
-  border:1px solid rgba(255,255,255,.38);backdrop-filter:blur(2px) saturate(1.35) brightness(1.06);-webkit-backdrop-filter:blur(2px) saturate(1.35) brightness(1.06);
-  box-shadow:0 8px 20px -10px rgba(40,70,120,.45),inset 0 1px 0 rgba(255,255,255,.75),inset 0 -1px 0 rgba(255,255,255,.18),inset 0 0 12px rgba(255,255,255,.12);animation:orb 4.5s ease-in-out infinite;text-shadow:0 0 6px var(--panel),0 0 2px var(--panel)}
-.vorb::after{content:"";position:absolute;top:-60%;left:-30%;width:50%;height:220%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);transform:rotate(18deg);animation:sheen 5.5s ease-in-out infinite}
-@keyframes orb{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-@keyframes sheen{0%,55%{transform:translateX(-120%) rotate(18deg)}100%{transform:translateX(420%) rotate(18deg)}}
-@media (max-width:760px){body:has(#app:not([hidden])) .vorb{bottom:calc(92px + env(safe-area-inset-bottom,0px));opacity:.9}}
-@media (prefers-reduced-motion:reduce){.vorb,.vorb::after{animation:none}}
-.lowfx .vorb{backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}.lowfx .vorb::after{animation:none}
+/* version label: tiny translucent text */
+.vorb{position:fixed;z-index:40;left:10px;right:auto;bottom:calc(6px + env(safe-area-inset-bottom,0px));font-size:11px;font-weight:600;letter-spacing:.3px;color:var(--ink);opacity:.4;pointer-events:none;direction:ltr;text-shadow:0 0 6px var(--bg,transparent)}
+@media (max-width:760px){body:has(#app:not([hidden])) .vorb{bottom:calc(82px + env(safe-area-inset-bottom,0px))}}
 </style>
 </head>
 <body>
@@ -1310,7 +1302,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 <ellipse cx="270" cy="204" rx="18" ry="7" fill="#fff" opacity=".28" transform="rotate(-28 270 204)" filter="url(#pgSoft2)"/>
 </g></g></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۳۹" title="نسخه ۱٫۳۹">۱.۳۹</div>
+<div class="vorb" aria-label="نسخه ۱٫۴۰" title="نسخه ۱٫۴۰">۱.۴۰</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1865,7 +1857,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۳۹)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۰)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
