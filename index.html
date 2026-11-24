@@ -37,7 +37,7 @@
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 
-<div class="vorb" aria-label="نسخه ۱٫۴۴" title="نسخه ۱٫۴۴">۱.۴۴</div>
+<div class="vorb" aria-label="نسخه ۱٫۴۵" title="نسخه ۱٫۴۵">۱.۴۵</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -576,7 +576,7 @@ ${sw('sNotif', 'اعلان مرورگر', settings.notifications_enabled)}
 </div>
 <div class="sec"><b>حریم خصوصی</b>
 ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-${sw('sVer', 'نمایش نشان نسخه (۱.۴۴)', !hideVer())}
+${sw('sVer', 'نمایش نشان نسخه (۱.۴۵)', !hideVer())}
 ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
 <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
 ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1916,7 +1916,7 @@ beep(); ringIv = setInterval(beep, 2000);
 }
 function ringStop() { clearInterval(ringIv); ringIv = null; }
 async function getMedia(kind) {
-const aud = { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 };
+const aud = { echoCancellation: { ideal: true }, noiseSuppression: { ideal: true }, autoGainControl: { ideal: true }, channelCount: 1, voiceIsolation: true };
 const tries = kind === 'video'
 ? [{ audio: aud, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 20, max: 24 } } }, { audio: aud, video: true }]
 : [{ audio: aud }, { audio: true }];
@@ -2521,12 +2521,14 @@ if (!call || call.share) return;
 if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)) { toast('این مرورگر یا گوشی اشتراک صفحه را پشتیبانی نمی‌کند؛ از Chrome یا Edge روی کامپیوتر استفاده کنید', 5000); return; }
 let ds;
 try {
-ds = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1600 }, height: { ideal: 900 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, systemAudio: 'include', selfBrowserSurface: 'exclude' });
+ds = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 15, max: 20 }, width: { ideal: 1600 }, height: { ideal: 900 } }, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, suppressLocalAudioPlayback: true }, systemAudio: 'exclude', selfBrowserSurface: 'exclude' });
 } catch (e) { if (e && e.name !== 'NotAllowedError') toast('اشتراک صفحه ممکن نشد: ' + (e.name || '') + (location.protocol === 'https:' || location.hostname === 'localhost' ? '' : ' (نیاز به https)')); return; }
 const track = ds.getVideoTracks()[0]; if (!track) return;
 try { track.contentHint = 'detail'; } catch (_) {}
 const sh = { ds, track, mixTrack: null, ctx: null };
-const sysA = ds.getAudioTracks()[0];
+let sysA = ds.getAudioTracks()[0];
+/* sharing a whole screen/window captures the call's own sound and sends it back to everyone = echo; only tab audio is kept */
+try { const sf = (track.getSettings && track.getSettings().displaySurface) || ''; if (sysA && sf && sf !== 'browser') { ds.getAudioTracks().forEach(a => { try { a.stop(); ds.removeTrack(a); } catch (_) {} }); sysA = null; toast('صدای کل صفحه فرستاده نمی‌شود تا در تماس اکو نشود؛ برای پخش صدا، «تب» را به اشتراک بگذارید'); } } catch (_) {}
 if (sysA) {
 try {
 const ctx = new (window.AudioContext || window.webkitAudioContext)(), dest = ctx.createMediaStreamDestination();
