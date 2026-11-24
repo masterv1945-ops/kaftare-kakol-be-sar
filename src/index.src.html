@@ -1310,7 +1310,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 <ellipse cx="270" cy="204" rx="18" ry="7" fill="#fff" opacity=".28" transform="rotate(-28 270 204)" filter="url(#pgSoft2)"/>
 </g></g></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۳۸" title="نسخه ۱٫۳۸">۱.۳۸</div>
+<div class="vorb" aria-label="نسخه ۱٫۳۹" title="نسخه ۱٫۳۹">۱.۳۹</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1865,7 +1865,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۳۸)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۳۹)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -4487,6 +4487,7 @@ if (window.__LANG === 'en') (async () => {
       if (n.nodeType === 3) {
         const v = n.nodeValue; if (!FA.test(v)) return;
         const pe = n.parentElement;
+        if (pe && pe.closest('.rt b,.hd .t b,.mrow,.mrow *,#incName,#giT')) return; /* names of people/groups: never translated */
         if (pe && pe.closest('#msgs,.rp,#pinBar,#replyBar,.rqi,.sres,.mtxt')) {
           /* user-written content: never translated; only exact UI labels (e.g. "Photo", "Message deleted") are */
           const m = /^(\s*[^\u0600-\u06FF]*)([\u0600-\u06FF][^]*?)(\s*)$/.exec(v);
