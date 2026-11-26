@@ -1075,7 +1075,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۵۱" title="نسخه ۱٫۵۱">۱.۵۱</div>
+<div class="vorb" aria-label="نسخه ۱٫۵۲" title="نسخه ۱٫۵۲">۱.۵۲</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1638,7 +1638,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۱)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۲)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -2354,7 +2354,12 @@ function msgMenu(id, x, y) {
     if (m.kind === 'image' && m.attachment_path) items.push(['🔍 باز کردن تصویر', () => openLightbox(m.attachment_path)]);
   }
   items.push(['🙈 حذف برای خودم', async () => { const { error } = await sb.from('message_deletions').insert({ user_id: me.id, message_id: id }); if (error) return toast('حذف نشد'); msgs = msgs.filter(x => x.id !== id); $('#msgs')?.querySelector('[data-id="' + id + '"]')?.remove(); }]);
-  if (mine && !m.deleted_at) items.push(['🗑 حذف برای همه', async () => { const { error } = await sb.from('messages').update({ deleted_at: new Date().toISOString() }).eq('id', id); if (error) toast('حذف نشد'); }]);
+  if (mine && !m.deleted_at) items.push(['🗑 حذف برای همه', async () => {
+    const { data, error } = await sb.from('messages').update({ deleted_at: new Date().toISOString() }).eq('id', id).select('*').single();
+    if (error || !data) return toast('حذف نشد' + (error ? ': ' + error.message : ''));
+    const i = msgs.findIndex(v => v.id === id); if (i >= 0) { msgs[i] = data; upsertMsg(data); }
+    refreshConvs(); toast('برای همه حذف شد');
+  }]);
   const m2 = $('#ctx'); m2._mid = id;
   showCtx(x, y, m.deleted_at ? null : ['👍', '❤️', '😂', '😮', '😢', '🙏'], items);
   m2._mid = id;
