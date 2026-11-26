@@ -1042,6 +1042,16 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .nst{color:var(--accent,#2ec4b6);font-weight:600}
 .nst::after{content:'';display:inline-block;width:1.2em;text-align:start;animation:ndots 1.2s steps(1) infinite}
 @keyframes ndots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.poll{min-width:220px;max-width:300px}.pq{font-weight:700;margin:2px 0 8px;line-height:1.5}
+.po{position:relative;display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;margin:5px 0;border-radius:12px;background:rgba(127,127,127,.14);overflow:hidden;text-align:start;color:inherit;font:inherit}
+.po .pb{position:absolute;inset-block:0;inset-inline-start:0;background:color-mix(in srgb,var(--accent,#2ec4b6) 38%,transparent);transition:width .45s cubic-bezier(.2,.8,.2,1);z-index:0}
+.po>span{position:relative;z-index:1}.po .pt{flex:1;min-width:0;overflow-wrap:anywhere}.po .pp{font-size:12px;opacity:.8}.po .pc{font-size:13px;opacity:.85}.po.on{outline:2px solid var(--accent,#2ec4b6)}
+.pf{font-size:12px;opacity:.7;margin-top:6px}
+.loc,.m a.loc{display:block;width:min(240px,70vw);color:#fff;text-decoration:none!important;border-radius:14px;overflow:hidden;background:rgba(16,26,38,.82)}.loc *{text-decoration:none!important}
+.lmap{position:relative;aspect-ratio:1/1;overflow:hidden;background:linear-gradient(135deg,#2a3a4a,#1d2a38)}.lmap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lmap i{position:absolute;transform:translate(-50%,-100%);font-style:normal;font-size:26px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.lt{padding:8px 10px;font-weight:600}.lt small{display:block;opacity:.7;font-weight:400;font-size:12px}
+#mnBar button{display:flex;gap:8px;align-items:center}
 </style>
 </head>
 <body>
@@ -1061,7 +1071,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۴۹" title="نسخه ۱٫۴۹">۱.۴۹</div>
+<div class="vorb" aria-label="نسخه ۱٫۵۰" title="نسخه ۱٫۵۰">۱.۵۰</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1624,7 +1634,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۴۹)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۰)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1764,7 +1774,7 @@ function previewOf(c) {
   const m = c.last; if (!m) return 'شروع گفتگو';
   const pre = m.sender_id === me.id ? 'شما: ' : (c.type === 'group' ? nameOf(m.sender_id) + ': ' : '');
   if (m.deleted_at) return pre + 'پیام حذف شد';
-  const t = { image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', call: '📞 تماس' }[m.kind];
+  const t = { image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', call: '📞 تماس', poll: '📊 نظرسنجی: ' + (m.body || ''), location: '📍 موقعیت مکانی' }[m.kind];
   return pre + (t || (m.body || '').replace(/(\*\*|__|~~|\|\||`)/g, '').slice(0, 80));
 }
 const isUnread = c => unreadCount(c) > 0;
@@ -1949,6 +1959,7 @@ function renderMain() {
     <div class="reply-bar" id="replyBar" hidden></div>
     <div class="emojis" id="emojis" hidden></div>
     <div class="cmdbar" id="cmdBar" hidden></div>
+    <div class="cmdbar" id="mnBar" hidden></div>
     <form class="composer" id="composer">
       <button class="ib" type="button" id="emojiBtn" aria-label="ایموجی">😊</button>
       <button class="ib" type="button" id="attachBtn" aria-label="پیوست">${icon('clip')}</button>
@@ -1960,7 +1971,7 @@ function renderMain() {
   renderHeader(); renderMsgs(true); renderReply(); updateBanner(); loadPins(); renderRoomBar();
   const c0 = active(); if (c0 && (c0.direct_key === 'announcements' || c0.only_admins_can_post) && (c0.roles || {})[me.id] !== 'admin') { $('#composer').hidden = true; $('#composer').insertAdjacentHTML('beforebegin', '<div class="ro">📢 فقط مدیر می‌تواند در این کانال پیام بگذارد</div>'); }
   const txt = $('#txt');
-  txt.addEventListener('input', () => { cmdSuggest(); txt.style.height = 'auto'; txt.style.height = Math.min(txt.scrollHeight, 140) + 'px'; sendTyping('text'); });
+  txt.addEventListener('input', () => { cmdSuggest(); mentionSuggest(); txt.style.height = 'auto'; txt.style.height = Math.min(txt.scrollHeight, 140) + 'px'; sendTyping('text'); });
   txt.addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $('#composer').requestSubmit(); }
     if (e.key === 'ArrowUp' && !txt.value) { const mm = [...msgs].reverse().find(x => x.sender_id === me.id && x.kind === 'text' && !x.deleted_at); if (mm) { e.preventDefault(); startEdit(mm); } }
@@ -1968,7 +1979,11 @@ function renderMain() {
   });
   txt.addEventListener('paste', e => { const fs = [...(e.clipboardData?.files || [])]; if (fs.length) { e.preventDefault(); fs.forEach(f => sendFile(f, null)); } });
   $('#composer').addEventListener('submit', e => { e.preventDefault(); sendText(); });
-  $('#attachBtn').onclick = () => $('#fileIn').click();
+  $('#attachBtn').onclick = e => {
+    const r = e.currentTarget.getBoundingClientRect(), c1 = active();
+    const items = [['📎 فایل یا عکس', () => $('#fileIn').click()], ['📊 نظرسنجی', openPollDlg], ['📍 موقعیت مکانی', sendLocation], ['⏱ پیام‌های ناپدیدشونده', openDisappear]];
+    showCtx(Math.max(8, r.left), innerHeight, null, items);
+  };
   $('#fileIn').onchange = e => { [...e.target.files].forEach(f => sendFile(f, null)); e.target.value = ''; };
   $('#recBtn').onclick = toggleRecord;
   $('#emojiBtn').onclick = toggleEmojis;
@@ -2004,7 +2019,7 @@ function renderHeader() {
   const t = convTitle(c);
   h.innerHTML = `<button class="ib back" id="backBtn" type="button" aria-label="بازگشت">${icon('back')}</button>
     <button class="hd" id="hdInfo" type="button">${cAv(c, c.type === 'direct' && isOnline(prof(otherId(c))), 'sm')}
-    <div class="t"><b>${netTxt() || esc(t)}${isMuted(c) ? ' 🔕' : ''}${c.type === 'direct' && blocked.has(otherId(c)) ? ' · مسدود' : ''}</b><small id="stLine" class="${typingMap[c.id] && Date.now() < typingMap[c.id].until ? 'typing' : ''}">${esc(statusLine(c))}</small></div></button>
+    <div class="t"><b>${netTxt() || esc(t)}${isMuted(c) ? ' 🔕' : ''}${c.type === 'direct' && blocked.has(otherId(c)) ? ' · مسدود' : ''}</b><small id="stLine" class="${typingMap[c.id] && Date.now() < typingMap[c.id].until ? 'typing' : ''}">${esc(statusLine(c) + dsTag(c))}</small></div></button>
     <button class="ib" id="srchBtn" type="button" title="جستجو" aria-label="جستجو">${icon('search')}</button>
     <button class="ib" id="callA" type="button" title="تماس صوتی" aria-label="تماس صوتی">${icon('phone')}</button>
     <button class="ib" id="callV" type="button" title="تماس تصویری" aria-label="تماس تصویری">${icon('video')}</button>
@@ -2017,7 +2032,7 @@ function renderHeader() {
 }
 function chatMenu(x, y) {
   const c = active(); if (!c) return;
-  const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ...(isStandalone() ? [] : [[isFs() ? '⤡ خروج از تمام‌صفحه' : '⛶ تمام‌صفحه', toggleFs]]), ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
+  const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ['⏱ پیام‌های ناپدیدشونده', openDisappear], ...(isStandalone() ? [] : [[isFs() ? '⤡ خروج از تمام‌صفحه' : '⛶ تمام‌صفحه', toggleFs]]), ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
   if (c.type === 'direct') items.push([blocked.has(otherId(c)) ? '🚫 رفع مسدودی' : '🚫 مسدود کردن', () => toggleBlock(otherId(c))]);
   if (c.type === 'group') items.push(['🚪 ترک گروه', async () => {
     if (!confirm('از این گروه خارج می‌شوید؟')) return;
@@ -2136,6 +2151,7 @@ async function loadReactions(list) {
   if (!list.length) return;
   const { data: rx } = await sb.from('message_reactions').select('*').in('message_id', list.map(m => m.id));
   (rx || []).forEach(r => { const a = (reactions[r.message_id] ||= []); if (!a.some(x => x.user_id === r.user_id && x.emoji === r.emoji)) a.push(r); });
+  await loadVotes(list);
 }
 async function loadOlder() {
   const id = activeId; if (!msgs.length) return;
@@ -2184,6 +2200,8 @@ function msgInner(m, c) {
     else if (m.kind === 'video') body = `<video data-path="${att}" controls playsinline preload="metadata"></video>`;
     else if (m.kind === 'voice') body = voiceHtml(m, meta);
     else if (m.kind === 'audio') body = `<audio data-path="${att}" controls preload="none"></audio>`;
+    else if (m.kind === 'poll') body = pollHtml(m, meta);
+    else if (m.kind === 'location') body = locHtml(m, meta);
     else if (m.kind === 'file') body = `<a class="file" data-file="${att}" data-name="${esc(meta.name || 'file')}">${icon('file')}<span>${esc(meta.name || m.body || 'فایل')}${meta.size ? '<small>' + fmtSize(meta.size) + '</small>' : ''}</span></a>`;
     else if (m.kind === 'text' && /#call=[0-9a-f-]{36}/i.test(m.body || '')) {
       const cid = /#call=([0-9a-f-]{36})/i.exec(m.body)[1], txt = m.body.replace(/\n?پیوستن به تماس:\n?\S+/, '').trim();
@@ -2204,7 +2222,7 @@ function msgInner(m, c) {
     ${body}
     ${m.deleted_at ? '' : markupHtml(m, meta)}
     ${chips ? `<div class="rx">${chips}</div>` : ''}
-    <div class="meta">${pinned ? '📌 ' : ''}${stars.has(m.id) ? '⭐ ' : ''}${fmtTime(m.created_at)}${m.edited_at && !m.deleted_at ? ' · ویرایش‌شده' : ''} ${tickHtml(m, c)}</div>`;
+    <div class="meta">${pinned ? '📌 ' : ''}${stars.has(m.id) ? '⭐ ' : ''}${m.expires_at ? '⏱ ' : ''}${fmtTime(m.created_at)}${m.edited_at && !m.deleted_at ? ' · ویرایش‌شده' : ''} ${tickHtml(m, c)}</div>`;
 }
 /* consecutive messages from the same person (within 4 minutes, same day) are visually merged */
 const sameGrp = (a, b) => a && b && a.kind !== 'system' && b.kind !== 'system' && a.sender_id === b.sender_id && dayKey(a.created_at) === dayKey(b.created_at) && Math.abs(new Date(b.created_at) - new Date(a.created_at)) < 240000;
@@ -2221,7 +2239,7 @@ function msgEl(m, c) {
   return d;
 }
 const dayEl = t => { const d = document.createElement('div'); d.className = 'day'; d.textContent = fmtDay(t); return d; };
-const previewKind = m => ({ image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل' }[m.kind] || '');
+const previewKind = m => ({ image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', poll: '📊 نظرسنجی', location: '📍 موقعیت مکانی' }[m.kind] || '');
 function renderMsgs(forceBottom) {
   const box = $('#msgs'), c = active(); if (!box || !c) return;
   const near = forceBottom || box.scrollHeight - box.scrollTop - box.clientHeight < 140;
@@ -2336,6 +2354,7 @@ function msgMenu(id, x, y) {
   m2._mid = id;
 }
 $('#main').addEventListener('click', async e => {
+  { const po = e.target.closest('[data-poll]'); if (po) { votePoll(po.dataset.poll, +po.dataset.opt); return; } }
   const sp = e.target.closest('.sp'); if (sp) { sp.classList.toggle('on'); return; }
   const im = e.target.closest('.m img[data-path]');
   if (im) { openLightbox(im.dataset.path); return; }
@@ -2579,6 +2598,108 @@ async function toggleRecord() {
 addEventListener('dragover', e => { if (activeId && e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 addEventListener('drop', e => { if (!activeId || !e.dataTransfer || !e.dataTransfer.files.length) return; e.preventDefault(); [...e.dataTransfer.files].forEach(f => sendFile(f, null)); });
 
+
+/* ================= polls, location, disappearing messages, @mentions ================= */
+let pollVotes = {};
+async function loadVotes(list) {
+  const ids = (list || []).filter(m => m.kind === 'poll').map(m => m.id); if (!ids.length) return;
+  const { data } = await sb.from('message_poll_votes').select('message_id,user_id,opt').in('message_id', ids);
+  ids.forEach(i => { pollVotes[i] = []; });
+  (data || []).forEach(v => pollVotes[v.message_id].push(v));
+}
+function onVote(p) {
+  const r = p.eventType === 'DELETE' ? p.old : p.new;
+  if (!r || !r.message_id) return;
+  const m = msgs.find(x => x.id === r.message_id); if (!m) return;
+  const list = pollVotes[r.message_id] ||= [];
+  if (p.eventType === 'INSERT') { if (!list.some(x => x.user_id === r.user_id && x.opt === r.opt)) list.push(r); }
+  else if (p.eventType === 'DELETE') pollVotes[r.message_id] = list.filter(x => !(x.user_id === r.user_id && x.opt === r.opt));
+  upsertMsg(m);
+}
+function pollHtml(m, meta) {
+  const opts = Array.isArray(meta.opts) ? meta.opts : [], votes = pollVotes[m.id] || [];
+  const voters = new Set(votes.map(v => v.user_id)).size;
+  const rows = opts.map((o, i) => {
+    const n = votes.filter(v => v.opt === i).length, pct = voters ? Math.round(n * 100 / voters) : 0, on = votes.some(v => v.opt === i && v.user_id === me.id);
+    return `<button type="button" class="po${on ? ' on' : ''}" data-poll="${m.id}" data-opt="${i}"><i class="pb" style="width:${pct}%"></i><span class="pc">${on ? '✓' : '○'}</span><span class="pt">${esc(o)}</span><span class="pp">${fa(pct)}٪</span></button>`;
+  }).join('');
+  return `<div class="poll"><div class="pq">📊 ${esc(m.body || '')}</div>${rows}<div class="pf">${fa(voters)} رأی · ${meta.multi ? 'چندانتخابی' : 'تک‌انتخابی'}</div></div>`;
+}
+async function votePoll(id, opt) {
+  const { error } = await sb.rpc('vote_poll', { p_message: id, p_opt: opt });
+  if (error) return toast('ثبت رأی ممکن نشد');
+  const m = msgs.find(x => x.id === id); if (m) { await loadVotes([m]); upsertMsg(m); }
+}
+function openPollDlg() {
+  openModal(`<form class="card" id="plF"><h3 style="margin:0 0 10px">📊 نظرسنجی</h3>
+    <label class="f">سؤال<input id="plQ" maxlength="200" required></label>
+    <div id="plO"></div>
+    <button class="btn ghost sm" type="button" id="plAdd" style="margin:6px 0">+ افزودن گزینه</button>
+    <label class="sw"><span>چند گزینه قابل انتخاب باشد</span><input type="checkbox" id="plM"></label>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" type="submit">ارسال</button><button class="btn ghost" type="button" id="plX">بستن</button></div></form>`);
+  const box = $('#plO');
+  const add = () => { if (box.children.length >= 8) return; const i = document.createElement('input'); i.maxLength = 80; i.placeholder = 'گزینه ' + fa(box.children.length + 1); i.className = 'plo'; i.style.cssText = 'display:block;width:100%;margin:6px 0'; box.appendChild(i); };
+  add(); add(); $('#plAdd').onclick = () => { add(); box.lastChild.focus(); };
+  $('#plX').onclick = closeModal; $('#plQ').focus();
+  const chk = $('#plM');
+  $('#plF').onsubmit = async e => {
+    e.preventDefault();
+    const q = $('#plQ').value.trim(), opts = [...box.querySelectorAll('input')].map(i => i.value.trim()).filter(Boolean), multi = chk.checked;
+    if (!q || opts.length < 2) return toast('حداقل دو گزینه لازم است');
+    closeModal();
+    const m = await insertMsg({ kind: 'poll', body: q, metadata: { opts: opts.slice(0, 8), multi } });
+    if (m) { pollVotes[m.id] = []; }
+  };
+}
+function locHtml(m, meta) {
+  const lat = +meta.lat, lng = +meta.lng; if (!isFinite(lat) || !isFinite(lng)) return '<div class="body">📍 موقعیت مکانی</div>';
+  const z = 15, n = 2 ** z, xf = (lng + 180) / 360 * n, la = lat * Math.PI / 180, yf = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
+  const tx = Math.floor(xf), ty = Math.floor(yf), fx = ((xf - tx) * 100).toFixed(1), fy = ((yf - ty) * 100).toFixed(1);
+  const href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+  return `<a class="loc" href="${href}" target="_blank" rel="noopener noreferrer"><div class="lmap"><img loading="lazy" alt="" src="https://tile.openstreetmap.org/${z}/${tx}/${ty}.png" onerror="this.remove()"><i style="left:${fx}%;top:${fy}%">📍</i></div><div class="lt">📍 موقعیت مکانی<small dir="ltr">${lat.toFixed(5)}, ${lng.toFixed(5)}</small></div></a>`;
+}
+function sendLocation() {
+  if (!navigator.geolocation) return toast('مرورگر شما موقعیت را پشتیبانی نمی‌کند');
+  toast('در حال پیدا کردن موقعیت…');
+  navigator.geolocation.getCurrentPosition(async pos => {
+    await insertMsg({ kind: 'location', body: '📍 موقعیت مکانی', metadata: { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy || 0) } });
+  }, err => toast(err && err.code === 1 ? 'دسترسی به موقعیت داده نشد' : 'موقعیت پیدا نشد'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
+}
+const DS = [[0, '🚫 خاموش'], [86400, '۲۴ ساعت'], [604800, '۷ روز'], [2592000, '۳۰ روز']];
+const dsLabel = s => (DS.find(x => x[0] === s) || [0, ''])[1];
+const dsTag = c => c && c.disappear_after_seconds ? ' · ⏱ ' + dsLabel(c.disappear_after_seconds) : '';
+function openDisappear() {
+  const c = active(); if (!c) return;
+  const r = ($('#moreBtn') || document.body).getBoundingClientRect();
+  showCtx(r.left, r.bottom + 4, null, DS.map(([sec, lbl]) => [(c.disappear_after_seconds || 0) === sec ? '✓ ' + lbl : lbl, async () => {
+    const { error } = await sb.rpc('set_disappear', { conv: c.id, secs: sec });
+    if (error) return toast('تغییر نکرد');
+    c.disappear_after_seconds = sec || null;
+    await insertMsg({ kind: 'system', body: sec ? `${nameOf(me.id)} پیام‌های ناپدیدشونده را روی ${lbl} گذاشت` : `${nameOf(me.id)} پیام‌های ناپدیدشونده را خاموش کرد` });
+    renderHeader(); toast(sec ? 'پیام‌های تازه بعد از ' + lbl + ' پاک می‌شوند' : 'ناپدیدشدن پیام‌ها خاموش شد');
+  }]));
+}
+setInterval(() => {
+  if (!msgs.length || !msgs.some(m => m.expires_at)) return;
+  const now = Date.now(), keep = msgs.filter(m => !m.expires_at || new Date(m.expires_at) > now);
+  if (keep.length !== msgs.length) { msgs = keep; renderMsgs(); }
+}, 15000);
+function mentionSuggest() {
+  const t = $('#txt'), bar = $('#mnBar'), c = active(); if (!t || !bar || !c || c.type !== 'group') { if (bar) bar.hidden = true; return; }
+  const upto = t.value.slice(0, t.selectionStart), mm = /(^|\s)@([\w؀-ۿ]{0,32})$/.exec(upto);
+  if (!mm) { bar.hidden = true; return; }
+  const q = mm[2].toLowerCase();
+  const list = c.members.filter(id => id !== me.id && prof(id)).map(id => prof(id)).filter(p => !q || (p.username || '').toLowerCase().startsWith(q) || (p.display_name || '').toLowerCase().includes(q)).slice(0, 6);
+  if (!list.length) { bar.hidden = true; return; }
+  bar.innerHTML = list.map(p => `<button type="button" data-mu="${esc(p.username)}"><b dir="ltr">@${esc(p.username)}</b> <span>${esc(p.display_name || '')}</span></button>`).join('');
+  bar.hidden = false;
+  bar.onclick = e => {
+    const b = e.target.closest('[data-mu]'); if (!b) return;
+    const pos = t.selectionStart, before = t.value.slice(0, pos).replace(/@[\w؀-ۿ]{0,32}$/, '@' + b.dataset.mu + ' ');
+    t.value = before + t.value.slice(pos); t.focus(); t.selectionStart = t.selectionEnd = before.length; bar.hidden = true;
+  };
+}
+
 /* ================= realtime ================= */
 /* ---- connection status, Telegram style: connecting -> updating -> your profile/name again ---- */
 let netSt = 'connecting', netSince = Date.now(), netBusy = false, chDown = false, hiddenAt = 0;
@@ -2615,6 +2736,7 @@ function subscribe() {
   sb.channel('kaftar-db')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, onMsg)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, onReact)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'message_poll_votes' }, onVote)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_members' }, refreshConvs)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, refreshConvs)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'pinned_messages' }, () => { if (activeId) loadPins().then(() => renderMsgs()); })
