@@ -1052,6 +1052,10 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .lmap i{position:absolute;transform:translate(-50%,-100%);font-style:normal;font-size:26px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
 .lt{padding:8px 10px;font-weight:600}.lt small{display:block;opacity:.7;font-weight:400;font-size:12px}
 #mnBar button{display:flex;gap:8px;align-items:center}
+.contact{display:flex;align-items:center;gap:10px;min-width:210px}.contact .cav{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:color-mix(in srgb,var(--accent,#2ec4b6) 55%,#123);color:#fff;flex:none}
+.contact .ci{flex:1;min-width:0;display:flex;flex-direction:column}.contact small{opacity:.7}
+.sch{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;margin:5px 0;border-radius:12px;background:rgba(127,127,127,.14)}.sch small{display:block;opacity:.7;font-size:12px}
+#scF textarea,#scF input{width:100%}
 </style>
 </head>
 <body>
@@ -1071,7 +1075,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۵۰" title="نسخه ۱٫۵۰">۱.۵۰</div>
+<div class="vorb" aria-label="نسخه ۱٫۵۱" title="نسخه ۱٫۵۱">۱.۵۱</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1634,7 +1638,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۰)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۱)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1774,7 +1778,7 @@ function previewOf(c) {
   const m = c.last; if (!m) return 'شروع گفتگو';
   const pre = m.sender_id === me.id ? 'شما: ' : (c.type === 'group' ? nameOf(m.sender_id) + ': ' : '');
   if (m.deleted_at) return pre + 'پیام حذف شد';
-  const t = { image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', call: '📞 تماس', poll: '📊 نظرسنجی: ' + (m.body || ''), location: '📍 موقعیت مکانی' }[m.kind];
+  const t = { image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', call: '📞 تماس', poll: '📊 نظرسنجی: ' + (m.body || ''), location: '📍 موقعیت مکانی', contact: '👤 مخاطب' }[m.kind];
   return pre + (t || (m.body || '').replace(/(\*\*|__|~~|\|\||`)/g, '').slice(0, 80));
 }
 const isUnread = c => unreadCount(c) > 0;
@@ -1981,7 +1985,7 @@ function renderMain() {
   $('#composer').addEventListener('submit', e => { e.preventDefault(); sendText(); });
   $('#attachBtn').onclick = e => {
     const r = e.currentTarget.getBoundingClientRect(), c1 = active();
-    const items = [['📎 فایل یا عکس', () => $('#fileIn').click()], ['📊 نظرسنجی', openPollDlg], ['📍 موقعیت مکانی', sendLocation], ['⏱ پیام‌های ناپدیدشونده', openDisappear]];
+    const items = [['📎 فایل یا عکس', () => $('#fileIn').click()], ['📊 نظرسنجی', openPollDlg], ['📍 موقعیت مکانی', sendLocation], ['👤 مخاطب', openContactPicker], ['⏰ ارسال زمان‌دار', openScheduleDlg], ['⏱ پیام‌های ناپدیدشونده', openDisappear]];
     showCtx(Math.max(8, r.left), innerHeight, null, items);
   };
   $('#fileIn').onchange = e => { [...e.target.files].forEach(f => sendFile(f, null)); e.target.value = ''; };
@@ -2202,6 +2206,7 @@ function msgInner(m, c) {
     else if (m.kind === 'audio') body = `<audio data-path="${att}" controls preload="none"></audio>`;
     else if (m.kind === 'poll') body = pollHtml(m, meta);
     else if (m.kind === 'location') body = locHtml(m, meta);
+    else if (m.kind === 'contact') body = contactHtml(m, meta);
     else if (m.kind === 'file') body = `<a class="file" data-file="${att}" data-name="${esc(meta.name || 'file')}">${icon('file')}<span>${esc(meta.name || m.body || 'فایل')}${meta.size ? '<small>' + fmtSize(meta.size) + '</small>' : ''}</span></a>`;
     else if (m.kind === 'text' && /#call=[0-9a-f-]{36}/i.test(m.body || '')) {
       const cid = /#call=([0-9a-f-]{36})/i.exec(m.body)[1], txt = m.body.replace(/\n?پیوستن به تماس:\n?\S+/, '').trim();
@@ -2239,7 +2244,7 @@ function msgEl(m, c) {
   return d;
 }
 const dayEl = t => { const d = document.createElement('div'); d.className = 'day'; d.textContent = fmtDay(t); return d; };
-const previewKind = m => ({ image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', poll: '📊 نظرسنجی', location: '📍 موقعیت مکانی' }[m.kind] || '');
+const previewKind = m => ({ image: '📷 تصویر', video: '🎬 ویدیو', voice: '🎤 پیام صوتی', audio: '🎵 صدا', file: '📎 فایل', poll: '📊 نظرسنجی', location: '📍 موقعیت مکانی', contact: '👤 مخاطب' }[m.kind] || '');
 function renderMsgs(forceBottom) {
   const box = $('#msgs'), c = active(); if (!box || !c) return;
   const near = forceBottom || box.scrollHeight - box.scrollTop - box.clientHeight < 140;
@@ -2343,6 +2348,7 @@ function msgMenu(id, x, y) {
     if (m.body) items.push(['📋 کپی متن', () => { SAFE(() => navigator.clipboard.writeText(m.body)); toast('کپی شد'); }]);
     if (mine && m.kind === 'text') items.push(['✏️ ویرایش', () => startEdit(m)]);
     items.push(['↪ فوروارد', () => forwardMsg(m)]);
+    if (mine && c && c.type === 'group') items.push(['👁 دیده‌شده توسط', () => seenBy(m, c)]);
     items.push([isPinned ? '📌 برداشتن سنجاق' : '📌 سنجاق در گفتگو', () => togglePin(m)]);
     items.push([stars.has(id) ? '⭐ حذف از ذخیره‌شده‌ها' : '⭐ ذخیره', () => toggleStar(m)]);
     if (m.kind === 'image' && m.attachment_path) items.push(['🔍 باز کردن تصویر', () => openLightbox(m.attachment_path)]);
@@ -2354,6 +2360,7 @@ function msgMenu(id, x, y) {
   m2._mid = id;
 }
 $('#main').addEventListener('click', async e => {
+  { const ct = e.target.closest('[data-contact]'); if (ct) { openUser(ct.dataset.contact); return; } }
   { const po = e.target.closest('[data-poll]'); if (po) { votePoll(po.dataset.poll, +po.dataset.opt); return; } }
   const sp = e.target.closest('.sp'); if (sp) { sp.classList.toggle('on'); return; }
   const im = e.target.closest('.m img[data-path]');
@@ -2698,6 +2705,64 @@ function mentionSuggest() {
     const pos = t.selectionStart, before = t.value.slice(0, pos).replace(/@[\w؀-ۿ]{0,32}$/, '@' + b.dataset.mu + ' ');
     t.value = before + t.value.slice(pos); t.focus(); t.selectionStart = t.selectionEnd = before.length; bar.hidden = true;
   };
+}
+
+
+/* ================= contact cards, scheduled messages, seen-by ================= */
+function contactHtml(m, meta) {
+  const nm = meta.name || m.body || 'مخاطب', un = meta.username || '';
+  return `<div class="contact"><div class="cav">${esc((nm || '?').trim().charAt(0).toUpperCase())}</div><div class="ci"><b>${esc(nm)}</b>${un ? `<small dir="ltr">@${esc(un)}</small>` : ''}</div><button type="button" class="btn sm" data-contact="${esc(meta.uid || '')}">پیام</button></div>`;
+}
+function openContactPicker() {
+  const draw = q => {
+    const list = Object.values(profiles).filter(p => p && p.id !== me.id && !p.is_bot && (!q || (p.display_name || '').toLowerCase().includes(q) || (p.username || '').toLowerCase().includes(q))).slice(0, 40);
+    $('#ctL').innerHTML = list.map(p => `<button type="button" class="row" data-cp="${p.id}"><div class="rm"><div class="rt"><b>${esc(p.display_name || p.username)}</b></div><div class="rp" dir="ltr">@${esc(p.username)}</div></div></button>`).join('') || '<p class="hint">کسی پیدا نشد</p>';
+  };
+  openModal(`<div class="card"><h3 style="margin:0 0 10px">👤 ارسال مخاطب</h3><input id="ctQ" placeholder="جستجو…" autocomplete="off" style="width:100%;margin-bottom:8px"><div id="ctL" style="max-height:46vh;overflow:auto"></div><button class="btn ghost" type="button" id="ctX" style="margin-top:10px">بستن</button></div>`);
+  draw(''); $('#ctQ').oninput = e => draw(e.target.value.trim().toLowerCase()); $('#ctX').onclick = closeModal;
+  $('#ctL').onclick = async e => {
+    const b = e.target.closest('[data-cp]'); if (!b) return; const p = profiles[b.dataset.cp]; if (!p) return;
+    closeModal(); await insertMsg({ kind: 'contact', body: p.display_name || p.username, metadata: { uid: p.id, name: p.display_name || p.username, username: p.username } });
+  };
+}
+async function openScheduleDlg() {
+  const c = active(); if (!c) return;
+  const pad = n => String(n).padStart(2, '0'), loc = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const def = new Date(Date.now() + 3600e3); def.setSeconds(0, 0);
+  const draw = async () => {
+    const { data } = await sb.from('scheduled_messages').select('id,body,send_at').eq('conversation_id', c.id).order('send_at');
+    $('#scL').innerHTML = (data || []).map(r => `<div class="sch"><span>${esc(r.body.slice(0, 60))}<small>${esc(new Date(r.send_at).toLocaleString('fa-IR'))}</small></span><button type="button" class="ib" data-sd="${r.id}" aria-label="لغو">✕</button></div>`).join('');
+  };
+  openModal(`<form class="card" id="scF"><h3 style="margin:0 0 10px">⏰ ارسال زمان‌دار</h3>
+    <label class="f">متن پیام<textarea id="scT" rows="3" maxlength="4000" required>${esc($('#txt') ? $('#txt').value : '')}</textarea></label>
+    <label class="f">زمان ارسال<input id="scW" type="datetime-local" min="${loc(new Date())}" value="${loc(def)}" required></label>
+    <div class="chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button type="button" class="btn ghost sm" data-in="3600">۱ ساعت دیگر</button><button type="button" class="btn ghost sm" data-in="10800">۳ ساعت دیگر</button><button type="button" class="btn ghost sm" data-in="tom">فردا ۹ صبح</button></div>
+    <div id="scL"></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" type="submit">زمان‌بندی</button><button class="btn ghost" type="button" id="scX">بستن</button></div></form>`);
+  $('#scX').onclick = closeModal; draw();
+  $('#scF').addEventListener('click', async e => {
+    const q = e.target.closest('[data-in]'), d = e.target.closest('[data-sd]');
+    if (q) { const t = q.dataset.in === 'tom' ? (() => { const x = new Date(); x.setDate(x.getDate() + 1); x.setHours(9, 0, 0, 0); return x; })() : new Date(Date.now() + q.dataset.in * 1000); $('#scW').value = loc(t); }
+    if (d) { await sb.from('scheduled_messages').delete().eq('id', d.dataset.sd); draw(); }
+  });
+  $('#scF').onsubmit = async e => {
+    e.preventDefault();
+    const body = $('#scT').value.trim(), at = new Date($('#scW').value);
+    if (!body || isNaN(at)) return;
+    if (at.getTime() < Date.now() + 20000) return toast('زمان باید حداقل چند ثانیه بعد باشد');
+    const { error } = await sb.from('scheduled_messages').insert({ conversation_id: c.id, sender_id: me.id, body, send_at: at.toISOString() });
+    if (error) return toast('زمان‌بندی نشد' + (/30|check|row-level/i.test(error.message) ? ' (حداکثر ۳۰ پیام در صف)' : ''));
+    if ($('#txt') && $('#txt').value.trim() === body) { $('#txt').value = ''; $('#txt').dispatchEvent(new Event('input')); }
+    toast('پیام برای ' + at.toLocaleString('fa-IR') + ' زمان‌بندی شد'); $('#scT').value = ''; draw();
+  };
+}
+async function seenBy(m, c) {
+  const { data } = await sb.from('conversation_members').select('user_id,last_read_at').eq('conversation_id', c.id);
+  const others = (data || []).filter(r => r.user_id !== m.sender_id);
+  const seen = others.filter(r => r.last_read_at && new Date(r.last_read_at) >= new Date(m.created_at)), not = others.filter(r => !seen.includes(r));
+  const li = (r, ok) => `<div class="sch"><span>${esc(nameOf(r.user_id))}${ok && r.last_read_at ? `<small>${esc(fmtSeen(r.last_read_at))}</small>` : ''}</span><b>${ok ? '✓✓' : '·'}</b></div>`;
+  openModal(`<div class="card"><h3 style="margin:0 0 10px">👁 دیده‌شده توسط</h3>${seen.length ? seen.map(r => li(r, true)).join('') : '<p class="hint">هنوز کسی ندیده</p>'}${not.length ? '<p class="hint" style="margin:12px 0 4px">هنوز ندیده‌اند</p>' + not.map(r => li(r, false)).join('') : ''}<button class="btn ghost" type="button" id="sbX" style="margin-top:10px">بستن</button></div>`);
+  $('#sbX').onclick = closeModal;
 }
 
 /* ================= realtime ================= */
