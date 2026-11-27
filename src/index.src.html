@@ -1262,7 +1262,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
     <button type="button" id="fabNew" aria-label="جدید"></button>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۲" title="نسخه ۱٫۶۲">۱.۶۲</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۳" title="نسخه ۱٫۶۳">۱.۶۳</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1727,6 +1727,7 @@ function openProfile() {
     <h3 style="margin:0 0 14px">پروفایل من</h3>
     <div class="avedit"><span id="pAv">${uAv(me.id, false)}</span><label class="btn ghost">تغییر عکس<input id="pFile" type="file" accept="image/*" hidden></label></div>
     <label class="f">نام نمایشی<input id="pName" maxlength="40" value="${esc(p.display_name)}"></label>
+    <label class="f">نام کاربری (انگلیسی)<input id="pUser" dir="ltr" maxlength="32" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(p.username || '')}"></label>
     <label class="f">وضعیت<input id="pStatus" maxlength="80" value="${esc(p.status_text)}"></label>
     <label class="f">درباره من<input id="pBio" maxlength="160" value="${esc(p.bio)}"></label>
     <div style="display:flex;gap:8px"><button class="btn" type="submit">ذخیره</button><button class="btn ghost" type="button" id="pCancel">بستن</button></div>
@@ -1742,8 +1743,10 @@ function openProfile() {
   };
   $('#pf').onsubmit = async ev => {
     ev.preventDefault();
-    const { error } = await sb.from('profiles').update({ display_name: $('#pName').value.trim() || p.username, status_text: $('#pStatus').value.trim(), bio: $('#pBio').value.trim() }).eq('id', me.id);
-    if (error) return toast('ذخیره نشد');
+    const nu = $('#pUser').value.trim();
+    if (!/^[A-Za-z0-9_.]{3,32}$/.test(nu)) return toast('نام کاربری باید ۳ تا ۳۲ حرف انگلیسی، عدد، _ یا . باشد');
+    const { error } = await sb.from('profiles').update({ username: nu, display_name: $('#pName').value.trim() || nu, status_text: $('#pStatus').value.trim(), bio: $('#pBio').value.trim() }).eq('id', me.id);
+    if (error) return toast(error.code === '23505' ? 'این نام کاربری قبلاً گرفته شده است' : 'ذخیره نشد');
     await loadProfiles(); renderMe(); renderSide(); closeModal(); toast('ذخیره شد');
   };
 }
@@ -1790,7 +1793,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۲)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۳)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -3423,7 +3426,7 @@ function showCallUI() {
   { const pr = call.group ? null : prof(call.otherUid); $('#callAv').outerHTML = avatar(name, false, '', pr && pr.avatar_url).replace('class="av', 'id="callAv" class="av'); }
   $('#callName').textContent = name;
   $('#btnCam').hidden = false; $('#btnFlip').hidden = true; $('#spkPop').hidden = true; call.facing = call.facing || 'user';
-  $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
+  if (call) call.micOff = false; $('#btnMute').className = 'cb'; $('#btnMute').innerHTML = icon('mic');
   $('#btnCam').className = call.kind === 'video' ? 'cb' : 'cb off'; $('#btnCam').innerHTML = icon(call.kind === 'video' ? 'video' : 'videoOff');
   setTimeout(updFlip, 400);
   { const b = $('#btnShare'); b.className = 'cb'; b.innerHTML = icon('screen'); b.hidden = false; }
@@ -3657,7 +3660,7 @@ async function micCheck(c) {
   c.micBusy = true; c.micT = Date.now();
   try {
     const ns = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
-    const nt = ns.getAudioTracks()[0]; nt.enabled = t.enabled;
+    const nt = ns.getAudioTracks()[0]; nt.enabled = !c.micOff;
     c.stream.removeTrack(t); try { t.stop(); } catch (_) {} c.stream.addTrack(nt);
     for (const p of c.peers.values()) if (p.pc) for (const sn of p.pc.getSenders()) if (sn.track ? sn.track.kind === 'audio' : false) sn.replaceTrack(nt).catch(() => {});
     if (c.micFails > 0) toast('میکروفون دوباره وصل شد');
@@ -3824,7 +3827,8 @@ async function startCall(kind) {
     call = newCall({ id, kind, group: c.type === 'group', convId: c.id, stream, isCaller: true, title: convTitle(c), otherUid: c.type === 'direct' ? otherId(c) : null });
     showCallUI();
     setCallStatus('در حال زنگ زدن…');
-    call.timer = setTimeout(() => { if (call && !call.peers.size) endCall('timeout'); }, 45000);
+    call.timer = setTimeout(() => { if (call && !call.peers.size) endCall('timeout'); }, c.type === 'group' ? 15 * 60000 : 45000);
+    if (c.type === 'group') setCallStatus('منتظر پیوستن اعضا…');
     startLoops();
   } finally { starting = false; }
 }
@@ -3995,13 +3999,31 @@ $('#btnMin').onclick = () => setMini(true);
   cu.addEventListener('pointercancel', () => { drag = null; });
   addEventListener('resize', () => { if (cu.classList.contains('mini') && cu.style.left) { cu.style.left = Math.min(innerWidth - cu.offsetWidth - 6, Math.max(6, parseFloat(cu.style.left))) + 'px'; cu.style.top = Math.min(innerHeight - cu.offsetHeight - 6, Math.max(6, parseFloat(cu.style.top))) + 'px'; } });
 }
-$('#btnMute').onclick = () => {
+async function micTracks() {
+  if (!call) return [];
+  let ts = call.stream.getAudioTracks();
+  if (!ts.length) {
+    try {
+      const ns = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+      const nt = ns.getAudioTracks()[0]; call.stream.addTrack(nt); ts = [nt];
+      for (const p of call.peers.values()) if (p.pc) { p.pc.addTrack(nt, call.stream); if (!p.making) sendOffer(p, false).catch(() => {}); }
+    } catch (_) { toast('دسترسی به میکروفون ممکن نیست'); }
+  }
+  return ts;
+}
+function paintMute() {
+  const b = $('#btnMute'); if (!b || !call) return;
+  b.className = 'cb' + (call.micOff ? ' off' : ''); b.innerHTML = icon(call.micOff ? 'micOff' : 'mic');
+  b.setAttribute('aria-pressed', call.micOff ? 'true' : 'false');
+}
+$('#btnMute').onclick = async () => {
   if (!call) return;
-  const t = call.stream.getAudioTracks()[0]; if (!t) return;
-  t.enabled = !t.enabled;
-  $('#btnMute').className = 'cb' + (t.enabled ? '' : ' off');
-  $('#btnMute').innerHTML = icon(t.enabled ? 'mic' : 'micOff');
-  syncMedia();
+  const ts = await micTracks(); if (!ts.length) return;
+  call.micOff = !call.micOff;
+  const on = !call.micOff;
+  ts.forEach(t => { t.enabled = on; });
+  for (const p of call.peers.values()) if (p.pc) p.pc.getSenders().forEach(sn => { if (sn.track && sn.track.kind === 'audio') sn.track.enabled = on; });
+  paintMute(); syncMedia(); toast(on ? 'میکروفون روشن شد' : 'میکروفون خاموش شد');
 };
 $('#btnCam').onclick = async () => {
   if (!call) return;
@@ -4169,7 +4191,7 @@ function stopShare() {
 $('#btnShare').onclick = () => { if (call) (call.share ? stopShare() : startShare()); };
 function syncMedia() {
   const a = call.stream.getAudioTracks()[0], v = call.stream.getVideoTracks()[0];
-  sb.rpc('set_call_media', { call: call.id, muted: !(a && a.enabled), video_on: !!(v && v.enabled), screen_sharing: !!call.share }).then(() => {});
+  sb.rpc('set_call_media', { call: call.id, muted: !!call.micOff || !(a && a.enabled), video_on: !!(v && v.enabled), screen_sharing: !!call.share }).then(() => {});
 }
 // best effort: leave the call when the tab is closed
 addEventListener('pagehide', e => {
