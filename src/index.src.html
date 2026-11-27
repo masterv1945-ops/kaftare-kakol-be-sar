@@ -1115,6 +1115,23 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .m:not(.gn)::after{bottom:-1px!important;width:16px!important;height:20px!important}
 .m.mine:not(.gn)::after{background:var(--own)!important;right:-12px!important;clip-path:path('M0 0 L0 20 L16 20 C8 19 2 12 0 0 Z')}
 .m:not(.mine):not(.gn)::after{left:-12px!important;clip-path:path('M16 0 L16 20 L0 20 C8 19 14 12 16 0 Z')}
+
+/* ===== v1.60: flat, plain look ===== */
+*{text-shadow:none!important}
+.m,.m.mine{box-shadow:none!important}
+.m.mine{filter:none!important}
+.tgbar{background:var(--panel)!important}
+#msgs{background-image:none!important}
+:root[data-wall] #msgs{background-image:var(--wall)!important}
+@media (prefers-color-scheme:dark){:root[data-wall]:not([data-theme=light]) #msgs{background-image:linear-gradient(rgba(8,14,26,.88),rgba(8,14,26,.88)),var(--wall)!important}}
+:root[data-theme=dark][data-wall] #msgs{background-image:linear-gradient(rgba(8,14,26,.88),rgba(8,14,26,.88)),var(--wall)!important}
+#send,.sendb,#sendBtn{box-shadow:none!important}
+.day{box-shadow:none!important;backdrop-filter:none!important}
+#tgNav{box-shadow:0 -1px 0 var(--line)!important;border-radius:0!important;background:var(--panel)!important;border:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;margin:0!important;padding-bottom:env(safe-area-inset-bottom,0)}
+#tgNav button{border-radius:12px}
+.avatar,.av{box-shadow:none!important}
+.chat-h{border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+.chat-h::after,.chat-h::before{display:none!important}
 </style>
 </head>
 <body>
@@ -1195,7 +1212,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     </div>
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۵۹" title="نسخه ۱٫۵۹">۱.۵۹</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۰" title="نسخه ۱٫۶۰">۱.۶۰</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1704,16 +1721,16 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۹)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۰)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
       ${sw('sType', 'نمایش «در حال نوشتن» من', settings.typing_indicator)}
       <div id="blkList"></div>
     </div>
-    <div class="sec"><b>ابزارها</b><div class="toolbtns"><button class="btn ghost" type="button" id="sBots">🤖 ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">🎬 اتاق تماشا</button><button class="btn ghost" type="button" id="sGuide">📖 راهنما و دسترسی‌ها</button></div></div>
+    <div class="sec"><b>ابزارها</b><div class="toolbtns"><button class="btn ghost" type="button" id="sBots">ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">اتاق تماشا</button><button class="btn ghost" type="button" id="sGuide">راهنما و دسترسی‌ها</button></div></div>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" type="button" id="sProf">ویرایش پروفایل</button><button class="btn" type="button" id="sClose">بستن</button></div>
-    <button class="btn ghost danger" type="button" id="sDelAcc" style="margin-top:10px;width:100%">🗑 حذف حساب کاربری</button>
+    <button class="btn ghost danger" type="button" id="sDelAcc" style="margin-top:10px;width:100%">حذف حساب کاربری</button>
   </div>`);
   const c = $('#setc');
   c.onclick = async e => {
@@ -1931,10 +1948,10 @@ function chatRowMenu(id, x, y) {
   const setM = async until => { await sb.from('conversation_members').update({ muted_until: until }).eq('conversation_id', id).eq('user_id', me.id); refreshConvs(); };
   showCtx(x, y, null, [
     [c.mine && c.mine.is_pinned ? '📌 برداشتن سنجاق' : '📌 سنجاق کردن گفتگو', async () => { await sb.from('conversation_members').update({ is_pinned: !(c.mine && c.mine.is_pinned) }).eq('conversation_id', id).eq('user_id', me.id); refreshConvs(); }],
-    isMuted(c) ? ['🔔 فعال کردن اعلان', () => setM(null)] : ['🔕 بی‌صدا (۸ ساعت)', () => setM(new Date(Date.now() + 8 * 3600e3).toISOString())],
-    ...(isMuted(c) ? [] : [['🔕 بی‌صدا (همیشه)', () => setM('2099-01-01T00:00:00Z')]]),
-    ['✅ علامت خوانده', async () => { await sb.rpc('mark_read', { conv: id }); refreshConvs(); }],
-    ['🗑 حذف گفتگو (فقط برای من)', async () => {
+    isMuted(c) ? ['فعال کردن اعلان', () => setM(null)] : ['بی‌صدا (۸ ساعت)', () => setM(new Date(Date.now() + 8 * 3600e3).toISOString())],
+    ...(isMuted(c) ? [] : [['بی‌صدا (همیشه)', () => setM('2099-01-01T00:00:00Z')]]),
+    ['علامت خوانده', async () => { await sb.rpc('mark_read', { conv: id }); refreshConvs(); }],
+    ['حذف گفتگو (فقط برای من)', async () => {
       if (!confirm('این گفتگو از لیست شما پاک شود؟ (برای طرف مقابل باقی می‌ماند)')) return;
       const { error } = await sb.from('conversation_members').update({ cleared_at: new Date().toISOString() }).eq('conversation_id', id).eq('user_id', me.id);
       if (error) return toast('حذف نشد: ' + error.message);
@@ -1963,7 +1980,7 @@ $('#nvMe').onclick = () => $('#meBtn').click();
 $('#tgSearch').onclick = () => { const sd = $('#side'); sd.classList.toggle('searching'); if (sd.classList.contains('searching')) $('#gsearch').focus(); else { const g = $('#gsearch'); g.value = ''; g.dispatchEvent(new Event('input')); } };
 $('#tgMore').onclick = e => {
   const r = e.currentTarget.getBoundingClientRect();
-  showCtx(r.left, r.bottom + 4, null, [['👥 گروه جدید', () => $('#newGroup').click()], ['⭐ ذخیره‌شده‌ها', () => $('#starBtn').click()], ['⛶ تمام‌صفحه', () => $('#fsBtn').click()], ['🚪 خروج', () => $('#logoutBtn').click()]]);
+  showCtx(r.left, r.bottom + 4, null, [['گروه جدید', () => $('#newGroup').click()], ['ذخیره‌شده‌ها', () => $('#starBtn').click()], ['تمام‌صفحه', () => $('#fsBtn').click()], ['خروج', () => $('#logoutBtn').click()]]);
 };
 $('#tChats').onclick = () => { tab = 'chats'; syncTabs(); };
 $('#tUsers').onclick = () => { tab = 'users'; syncTabs(); };
@@ -2061,7 +2078,7 @@ function renderMain() {
   $('#composer').addEventListener('submit', e => { e.preventDefault(); sendText(); });
   $('#attachBtn').onclick = e => {
     const r = e.currentTarget.getBoundingClientRect(), c1 = active();
-    const items = [['📎 فایل یا عکس', () => $('#fileIn').click()], ['📊 نظرسنجی', openPollDlg], ['📍 موقعیت مکانی', sendLocation], ['👤 مخاطب', openContactPicker], ['⏰ ارسال زمان‌دار', openScheduleDlg], ['⏱ پیام‌های ناپدیدشونده', openDisappear]];
+    const items = [['فایل یا عکس', () => $('#fileIn').click()], ['نظرسنجی', openPollDlg], ['موقعیت مکانی', sendLocation], ['مخاطب', openContactPicker], ['ارسال زمان‌دار', openScheduleDlg], ['پیام‌های ناپدیدشونده', openDisappear]];
     showCtx(Math.max(8, r.left), innerHeight, null, items);
   };
   $('#fileIn').onchange = e => { [...e.target.files].forEach(f => sendFile(f, null)); e.target.value = ''; };
@@ -2112,21 +2129,21 @@ function renderHeader() {
 }
 function chatMenu(x, y) {
   const c = active(); if (!c) return;
-  const items = [['🔍 جستجو در گفتگو', () => $('#srchBtn').click()], ['⏱ پیام‌های ناپدیدشونده', openDisappear], ...(isStandalone() ? [] : [[isFs() ? '⤡ خروج از تمام‌صفحه' : '⛶ تمام‌صفحه', toggleFs]]), ['ℹ️ اطلاعات', openInfo], ['🖼 رسانه‌ها و فایل‌ها', () => openInfo('media')], ['🎬 اتاق تماشا / شنود', newRoomDialog]];
-  if (c.type === 'direct') items.push([blocked.has(otherId(c)) ? '🚫 رفع مسدودی' : '🚫 مسدود کردن', () => toggleBlock(otherId(c))]);
-  if (c.type === 'group') items.push(['🚪 ترک گروه', async () => {
+  const items = [['جستجو در گفتگو', () => $('#srchBtn').click()], ['پیام‌های ناپدیدشونده', openDisappear], ...(isStandalone() ? [] : [[isFs() ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه', toggleFs]]), ['اطلاعات', openInfo], ['رسانه‌ها و فایل‌ها', () => openInfo('media')], ['اتاق تماشا / شنود', newRoomDialog]];
+  if (c.type === 'direct') items.push([blocked.has(otherId(c)) ? 'رفع مسدودی' : 'مسدود کردن', () => toggleBlock(otherId(c))]);
+  if (c.type === 'group') items.push(['ترک گروه', async () => {
     if (!confirm('از این گروه خارج می‌شوید؟')) return;
     const { error } = await sb.from('conversation_members').delete().eq('conversation_id', c.id).eq('user_id', me.id);
     if (error) return toast('خروج ممکن نشد');
     activeId = null; await loadConvs(); renderMain();
   }]);
-  items.push(['🗑 حذف گفتگو (فقط برای من)', async () => {
+  items.push(['حذف گفتگو (فقط برای من)', async () => {
     if (!confirm('این گفتگو از لیست شما پاک شود؟ (برای طرف مقابل باقی می‌ماند)')) return;
     const { error } = await sb.from('conversation_members').update({ cleared_at: new Date().toISOString() }).eq('conversation_id', c.id).eq('user_id', me.id);
     if (error) return toast('حذف نشد: ' + error.message);
     activeId = null; await loadConvs(); renderMain(); toast('گفتگو حذف شد');
   }]);
-  if (c.created_by === me.id) items.push(['🗑 حذف گفتگو برای همه', async () => {
+  if (c.created_by === me.id) items.push(['حذف گفتگو برای همه', async () => {
     if (!confirm(c.type === 'group' ? 'این گروه برای همه‌ی اعضا برای همیشه حذف شود؟' : 'این گفتگو برای هر دو نفر برای همیشه حذف شود؟')) return;
     const { error } = await sb.rpc('delete_conversation', { conv: c.id });
     if (error) return toast('حذف نشد: ' + error.message);
@@ -2421,16 +2438,16 @@ function msgMenu(id, x, y) {
   const items = [];
   if (!m.deleted_at) {
     items.push(['↩ پاسخ', () => { replyTo = m; editing = null; renderReply(); $('#txt')?.focus(); }]);
-    if (m.body) items.push(['📋 کپی متن', () => { SAFE(() => navigator.clipboard.writeText(m.body)); toast('کپی شد'); }]);
-    if (mine && m.kind === 'text') items.push(['✏️ ویرایش', () => startEdit(m)]);
+    if (m.body) items.push(['کپی متن', () => { SAFE(() => navigator.clipboard.writeText(m.body)); toast('کپی شد'); }]);
+    if (mine && m.kind === 'text') items.push(['ویرایش', () => startEdit(m)]);
     items.push(['↪ فوروارد', () => forwardMsg(m)]);
-    if (mine && c && c.type === 'group') items.push(['👁 دیده‌شده توسط', () => seenBy(m, c)]);
+    if (mine && c && c.type === 'group') items.push(['دیده‌شده توسط', () => seenBy(m, c)]);
     items.push([isPinned ? '📌 برداشتن سنجاق' : '📌 سنجاق در گفتگو', () => togglePin(m)]);
     items.push([stars.has(id) ? '⭐ حذف از ذخیره‌شده‌ها' : '⭐ ذخیره', () => toggleStar(m)]);
-    if (m.kind === 'image' && m.attachment_path) items.push(['🔍 باز کردن تصویر', () => openLightbox(m.attachment_path)]);
+    if (m.kind === 'image' && m.attachment_path) items.push(['باز کردن تصویر', () => openLightbox(m.attachment_path)]);
   }
-  items.push(['🙈 حذف برای خودم', async () => { const { error } = await sb.from('message_deletions').insert({ user_id: me.id, message_id: id }); if (error) return toast('حذف نشد'); msgs = msgs.filter(x => x.id !== id); $('#msgs')?.querySelector('[data-id="' + id + '"]')?.remove(); }]);
-  if (mine && !m.deleted_at) items.push(['🗑 حذف برای همه', async () => {
+  items.push(['حذف برای خودم', async () => { const { error } = await sb.from('message_deletions').insert({ user_id: me.id, message_id: id }); if (error) return toast('حذف نشد'); msgs = msgs.filter(x => x.id !== id); $('#msgs')?.querySelector('[data-id="' + id + '"]')?.remove(); }]);
+  if (mine && !m.deleted_at) items.push(['حذف برای همه', async () => {
     const { data, error } = await sb.from('messages').update({ deleted_at: new Date().toISOString() }).eq('id', id).select('*').single();
     if (error || !data) return toast('حذف نشد' + (error ? ': ' + error.message : ''));
     const i = msgs.findIndex(v => v.id === id); if (i >= 0) { msgs[i] = data; upsertMsg(data); }
@@ -2562,7 +2579,7 @@ async function toggleStar(m) {
 }
 $('#starBtn').onclick = async () => {
   const ids = [...stars];
-  openModal('<div class="card info" id="starc"><h3 style="margin:0 0 12px">⭐ ذخیره‌شده‌ها</h3><div id="starL" class="mbody"><p class="hint">…</p></div><button class="btn" id="starX" type="button">بستن</button></div>');
+  openModal('<div class="card info" id="starc"><h3 style="margin:0 0 12px">ذخیره‌شده‌ها</h3><div id="starL" class="mbody"><p class="hint">…</p></div><button class="btn" id="starX" type="button">بستن</button></div>');
   $('#starX').onclick = closeModal;
   if (!ids.length) { $('#starL').innerHTML = '<p class="hint">هنوز پیامی ذخیره نکرده‌اید. روی پیام ⋯ را بزنید.</p>'; return; }
   const { data } = await sb.from('messages').select('*').in('id', ids).order('created_at', { ascending: false });
@@ -2719,7 +2736,7 @@ async function votePoll(id, opt) {
   const m = msgs.find(x => x.id === id); if (m) { await loadVotes([m]); upsertMsg(m); }
 }
 function openPollDlg() {
-  openModal(`<form class="card" id="plF"><h3 style="margin:0 0 10px">📊 نظرسنجی</h3>
+  openModal(`<form class="card" id="plF"><h3 style="margin:0 0 10px">نظرسنجی</h3>
     <label class="f">سؤال<input id="plQ" maxlength="200" required></label>
     <div id="plO"></div>
     <button class="btn ghost sm" type="button" id="plAdd" style="margin:6px 0">+ افزودن گزینه</button>
@@ -2753,7 +2770,7 @@ function sendLocation() {
     await insertMsg({ kind: 'location', body: '📍 موقعیت مکانی', metadata: { lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6), acc: Math.round(pos.coords.accuracy || 0) } });
   }, err => toast(err && err.code === 1 ? 'دسترسی به موقعیت داده نشد' : 'موقعیت پیدا نشد'), { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 });
 }
-const DS = [[0, '🚫 خاموش'], [86400, '۲۴ ساعت'], [604800, '۷ روز'], [2592000, '۳۰ روز']];
+const DS = [[0, 'خاموش'], [86400, '۲۴ ساعت'], [604800, '۷ روز'], [2592000, '۳۰ روز']];
 const dsLabel = s => (DS.find(x => x[0] === s) || [0, ''])[1];
 const dsTag = c => c && c.disappear_after_seconds ? ' · ⏱ ' + dsLabel(c.disappear_after_seconds) : '';
 function openDisappear() {
@@ -2799,7 +2816,7 @@ function openContactPicker() {
     const list = Object.values(profiles).filter(p => p && p.id !== me.id && !p.is_bot && (!q || (p.display_name || '').toLowerCase().includes(q) || (p.username || '').toLowerCase().includes(q))).slice(0, 40);
     $('#ctL').innerHTML = list.map(p => `<button type="button" class="row" data-cp="${p.id}"><div class="rm"><div class="rt"><b>${esc(p.display_name || p.username)}</b></div><div class="rp" dir="ltr">@${esc(p.username)}</div></div></button>`).join('') || '<p class="hint">کسی پیدا نشد</p>';
   };
-  openModal(`<div class="card"><h3 style="margin:0 0 10px">👤 ارسال مخاطب</h3><input id="ctQ" placeholder="جستجو…" autocomplete="off" style="width:100%;margin-bottom:8px"><div id="ctL" style="max-height:46vh;overflow:auto"></div><button class="btn ghost" type="button" id="ctX" style="margin-top:10px">بستن</button></div>`);
+  openModal(`<div class="card"><h3 style="margin:0 0 10px">ارسال مخاطب</h3><input id="ctQ" placeholder="جستجو…" autocomplete="off" style="width:100%;margin-bottom:8px"><div id="ctL" style="max-height:46vh;overflow:auto"></div><button class="btn ghost" type="button" id="ctX" style="margin-top:10px">بستن</button></div>`);
   draw(''); $('#ctQ').oninput = e => draw(e.target.value.trim().toLowerCase()); $('#ctX').onclick = closeModal;
   $('#ctL').onclick = async e => {
     const b = e.target.closest('[data-cp]'); if (!b) return; const p = profiles[b.dataset.cp]; if (!p) return;
@@ -2814,7 +2831,7 @@ async function openScheduleDlg() {
     const { data } = await sb.from('scheduled_messages').select('id,body,send_at').eq('conversation_id', c.id).order('send_at');
     $('#scL').innerHTML = (data || []).map(r => `<div class="sch"><span>${esc(r.body.slice(0, 60))}<small>${esc(new Date(r.send_at).toLocaleString('fa-IR'))}</small></span><button type="button" class="ib" data-sd="${r.id}" aria-label="لغو">✕</button></div>`).join('');
   };
-  openModal(`<form class="card" id="scF"><h3 style="margin:0 0 10px">⏰ ارسال زمان‌دار</h3>
+  openModal(`<form class="card" id="scF"><h3 style="margin:0 0 10px">ارسال زمان‌دار</h3>
     <label class="f">متن پیام<textarea id="scT" rows="3" maxlength="4000" required>${esc($('#txt') ? $('#txt').value : '')}</textarea></label>
     <label class="f">زمان ارسال<input id="scW" type="datetime-local" min="${loc(new Date())}" value="${loc(def)}" required></label>
     <div class="chips" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button type="button" class="btn ghost sm" data-in="3600">۱ ساعت دیگر</button><button type="button" class="btn ghost sm" data-in="10800">۳ ساعت دیگر</button><button type="button" class="btn ghost sm" data-in="tom">فردا ۹ صبح</button></div>
@@ -2842,7 +2859,7 @@ async function seenBy(m, c) {
   const others = (data || []).filter(r => r.user_id !== m.sender_id);
   const seen = others.filter(r => r.last_read_at && new Date(r.last_read_at) >= new Date(m.created_at)), not = others.filter(r => !seen.includes(r));
   const li = (r, ok) => `<div class="sch"><span>${esc(nameOf(r.user_id))}${ok && r.last_read_at ? `<small>${esc(fmtSeen(r.last_read_at))}</small>` : ''}</span><b>${ok ? '✓✓' : '·'}</b></div>`;
-  openModal(`<div class="card"><h3 style="margin:0 0 10px">👁 دیده‌شده توسط</h3>${seen.length ? seen.map(r => li(r, true)).join('') : '<p class="hint">هنوز کسی ندیده</p>'}${not.length ? '<p class="hint" style="margin:12px 0 4px">هنوز ندیده‌اند</p>' + not.map(r => li(r, false)).join('') : ''}<button class="btn ghost" type="button" id="sbX" style="margin-top:10px">بستن</button></div>`);
+  openModal(`<div class="card"><h3 style="margin:0 0 10px">دیده‌شده توسط</h3>${seen.length ? seen.map(r => li(r, true)).join('') : '<p class="hint">هنوز کسی ندیده</p>'}${not.length ? '<p class="hint" style="margin:12px 0 4px">هنوز ندیده‌اند</p>' + not.map(r => li(r, false)).join('') : ''}<button class="btn ghost" type="button" id="sbX" style="margin-top:10px">بستن</button></div>`);
   $('#sbX').onclick = closeModal;
 }
 
@@ -3824,7 +3841,7 @@ async function updateBanner() {
   if (id !== activeId) return;
   if (!ps || !ps.length) { b.hidden = true; return; }
   b.hidden = false;
-  b.innerHTML = '<span>📞 تماس گروهی ' + (row.call_type === 'video' ? 'تصویری' : 'صوتی') + ' در جریان است (' + ps.length + ' نفر)</span><button class="btn" type="button" id="bJoin">پیوستن</button>';
+  b.innerHTML = '<span>تماس گروهی ' + (row.call_type === 'video' ? 'تصویری' : 'صوتی') + ' در جریان است (' + ps.length + ' نفر)</span><button class="btn" type="button" id="bJoin">پیوستن</button>';
   $('#bJoin').onclick = () => joinCall(row);
 }
 
@@ -4155,7 +4172,7 @@ function tokenBox(token) {
     <small dir="ltr">${esc(SUPABASE_URL)}/functions/v1/bot-api/bot&lt;TOKEN&gt;/getMe</small></div>`;
 }
 async function openBots() {
-  openModal('<div class="card" id="botc"><h3 style="margin:0 0 6px">🤖 ربات‌ها (BotFather)</h3><div id="botBody"><p class="hint">در حال بارگذاری…</p></div></div>');
+  openModal('<div class="card" id="botc"><h3 style="margin:0 0 6px">ربات‌ها (BotFather)</h3><div id="botBody"><p class="hint">در حال بارگذاری…</p></div></div>');
   drawBots();
 }
 async function drawBots(extra) {
@@ -4246,7 +4263,7 @@ const fmtClock = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floo
 
 function newRoomDialog() {
   const c = active();
-  openModal(`<form class="card" id="nrF"><h3 style="margin:0 0 10px">🎬 اتاق تماشا / شنود</h3>
+  openModal(`<form class="card" id="nrF"><h3 style="margin:0 0 10px">اتاق تماشا / شنود</h3>
     <p class="hint" style="margin:0 0 10px">فیلم یا موسیقی را همزمان با دوستانتان ببینید و گفتگو کنید.</p>
     <label class="f">نام اتاق<input id="nrT" maxlength="60" value="اتاق ${esc(nameOf(me.id))}" required></label>
     ${c ? '<label class="sw"><span>لینک اتاق در این گفتگو فرستاده شود</span><input type="checkbox" id="nrS" checked></label>' : ''}
@@ -4269,7 +4286,7 @@ async function renderRoomBar() {
   if (!$('#roomBar') || active() !== c) return;
   const list = (data || []).filter(r => !room || room.id !== r.id);
   if (!list.length) { bar.hidden = true; return; }
-  bar.innerHTML = list.slice(0, 2).map(r => `<div>🎬 اتاق «${esc(r.title)}» فعال است <button type="button" class="btn" data-room="${r.id}">بپیوند</button></div>`).join('');
+  bar.innerHTML = list.slice(0, 2).map(r => `<div>اتاق «${esc(r.title)}» فعال است <button type="button" class="btn" data-room="${r.id}">بپیوند</button></div>`).join('');
   bar.hidden = false;
 }
 
@@ -4609,7 +4626,7 @@ function showRoom() {
   el.hidden = room.min; mini.hidden = !room.min; document.body.classList.toggle('inroom', !room.min);
   if (room.min) {
     const s = room.r.state || {};
-    mini.innerHTML = `<span>🎬 ${esc(room.r.title)}${s.playing ? ' · در حال پخش' : ''}</span><button type="button" class="btn" data-rm="open">بازگشت</button><button type="button" class="ib" data-rm="leave" aria-label="خروج">${icon('x')}</button>`;
+    mini.innerHTML = `<span>${esc(room.r.title)}${s.playing ? ' · در حال پخش' : ''}</span><button type="button" class="btn" data-rm="open">بازگشت</button><button type="button" class="ib" data-rm="leave" aria-label="خروج">${icon('x')}</button>`;
   }
 }
 $('#roomMini').addEventListener('click', e => {
