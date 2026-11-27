@@ -1127,11 +1127,53 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 :root[data-theme=dark][data-wall] #msgs{background-image:linear-gradient(rgba(8,14,26,.88),rgba(8,14,26,.88)),var(--wall)!important}
 #send,.sendb,#sendBtn{box-shadow:none!important}
 .day{box-shadow:none!important;backdrop-filter:none!important}
-#tgNav{box-shadow:0 -1px 0 var(--line)!important;border-radius:0!important;background:var(--panel)!important;border:0!important;left:0!important;right:0!important;bottom:0!important;width:auto!important;margin:0!important;padding-bottom:env(safe-area-inset-bottom,0)}
-#tgNav button{border-radius:12px}
 .avatar,.av{box-shadow:none!important}
 .chat-h{border-bottom:1px solid var(--line)!important;box-shadow:none!important}
 .chat-h::after,.chat-h::before{display:none!important}
+
+/* ===== v1.61: Telegram-like cards, floating nav, profile page ===== */
+:root{--bg:#151d29;--panel:#1c2735;--panel-2:#243142;--line:#2a3849;--ink:#fff;--ink-2:#8896aa;--accent:#3b9cf2;--accent-ink:#fff;--own:#2b5278}
+:root[data-theme=light]{--bg:#eef1f5;--panel:#fff;--panel-2:#f0f3f7;--line:#e2e7ee;--ink:#10161d;--ink-2:#74808f;--own:#d9ecff;--own-ink:#10161d}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#eef1f5;--panel:#fff;--panel-2:#f0f3f7;--line:#e2e7ee;--ink:#10161d;--ink-2:#74808f;--own:#d9ecff;--own-ink:#10161d}}
+#side{background:var(--bg)!important}
+.tgbar{background:var(--bg)!important}
+.gs{display:block!important;padding:4px 14px 8px}
+.gs input{height:46px;border-radius:999px!important;background:var(--panel)!important;border:0!important;padding:0 20px!important}
+.chips{background:transparent}
+#list{padding:0 12px 120px}
+.row{background:var(--panel);margin:0;border-radius:0}
+#list .row:first-child{border-radius:20px 20px 0 0}#list .row:last-child{border-radius:0 0 20px 20px}
+#list .row:only-child{border-radius:20px}
+#tgNav{position:absolute!important;inset-inline:14px!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;border-radius:36px!important;background:color-mix(in oklab,var(--panel) 92%,transparent)!important;backdrop-filter:blur(14px);box-shadow:0 4px 18px rgba(0,0,0,.25)!important}
+#fabNew{position:absolute;z-index:7;inset-inline-start:20px;bottom:calc(108px + env(safe-area-inset-bottom,0px));width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#fabNew svg{width:26px;height:26px}
+#modal:has(#setc),#modal:has(#mpg){padding:0;place-items:stretch;background:var(--bg)!important;backdrop-filter:none}
+#setc,#mpg{width:100%!important;max-width:none!important;max-height:none!important;height:100%;border-radius:0!important;background:var(--bg)!important;border:0!important;box-shadow:none!important;padding:0 12px 30px!important;overflow:auto}
+.sethead{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top,0)) 4px 8px;position:sticky;top:0;background:var(--bg);z-index:3}
+.sethead h3{margin:0;font-size:22px}
+.sback{width:40px;height:40px;border-radius:50%;border:0;background:transparent;color:var(--ink);display:grid;place-items:center}
+.sback svg{width:24px;height:24px}
+.setme{display:flex;align-items:center;gap:14px;padding:8px 6px 16px}
+.setme .av,.setme .avatar{width:64px;height:64px}
+.setme b{display:block;font-size:19px}.setme small{color:var(--ink-2)}
+#setc .sec{background:var(--panel);border-radius:20px;padding:14px 16px;margin:0 0 14px;border:0}
+#setc .sec>b:first-child{color:var(--accent);font-size:14px;display:block;margin-bottom:8px}
+.srows{display:flex;flex-direction:column}
+.srow{display:flex;align-items:center;gap:14px;padding:10px 0;border:0;background:none;color:var(--ink);font-size:16px;text-align:start;width:100%}
+.si{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;flex:none}
+.si svg{width:21px;height:21px}
+.mepage{text-align:center}
+.mpx{position:absolute;inset-block-start:calc(10px + env(safe-area-inset-top,0));inset-inline-start:10px}
+.mpav{display:grid;place-items:center;padding-top:calc(54px + env(safe-area-inset-top,0))}
+.mpav .av,.mpav .avatar,.mpav>*{width:130px!important;height:130px!important;font-size:54px!important}
+.mepage h2{margin:14px 0 2px;font-size:26px}.mps{color:var(--ink-2);margin:0 0 18px}
+.mpbtn{display:flex;gap:10px;margin-bottom:14px}
+.mpb{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;border-radius:20px;border:0;background:var(--panel);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+.mpb svg{width:26px;height:26px}
+.mpcard{background:var(--panel);border-radius:20px;padding:6px 16px;text-align:start}
+.mpcard>div{padding:12px 0}.mpcard b{display:block;font-size:17px;font-weight:500}.mpcard small{color:var(--ink-2)}
+.m{border-radius:18px;box-shadow:none}
+.m:not(.mine){background:var(--panel)}
 </style>
 </head>
 <body>
@@ -1212,7 +1254,8 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     </div>
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۰" title="نسخه ۱٫۶۰">۱.۶۰</i></button></nav>
+    <button type="button" id="fabNew" aria-label="جدید"></button>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۱" title="نسخه ۱٫۶۱">۱.۶۱</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1697,6 +1740,24 @@ function openProfile() {
     await loadProfiles(); renderMe(); renderSide(); closeModal(); toast('ذخیره شد');
   };
 }
+function openMePage() {
+  const p = prof(me.id);
+  openModal(`<div class="card mepage" id="mpg">
+    <button type="button" class="sback mpx" id="mpX" aria-label="بستن">${icon('x')}</button>
+    <div class="mpav">${uAv(me.id, false)}</div>
+    <h2>${esc(p.display_name)}</h2><p class="mps">${esc(p.status_text || 'آنلاین')}</p>
+    <div class="mpbtn"><label class="mpb">${icon('user')}<span>تغییر عکس</span><input id="mpFile" type="file" accept="image/*" hidden></label><button type="button" class="mpb" id="mpEdit">${icon('file')}<span>ویرایش</span></button><button type="button" class="mpb" id="mpSet">${icon('gear')}<span>تنظیمات</span></button></div>
+    <div class="mpcard"><div><b dir="ltr">@${esc(p.username || '')}</b><small>نام کاربری</small></div>${p.bio ? `<div><b>${esc(p.bio)}</b><small>درباره من</small></div>` : ''}</div>
+  </div>`);
+  $('#mpX').onclick = closeModal; $('#mpEdit').onclick = openProfile; $('#mpSet').onclick = openSettings;
+  $('#mpFile').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return; toast('در حال آپلود عکس…');
+    const url = await uploadAvatar(f, 'u'); if (!url) return;
+    const { error } = await sb.from('profiles').update({ avatar_url: url }).eq('id', me.id);
+    if (error) return toast('ذخیره عکس ناموفق بود');
+    await loadProfiles(); renderMe(); renderSide(); openMePage(); toast('عکس پروفایل عوض شد');
+  };
+}
 $('#meBtn').onclick = openProfile;
 $('#logoutBtn').onclick = async () => { try { await heartbeat(false); } catch (_) {} await sb.auth.signOut(); };
 
@@ -1704,7 +1765,8 @@ $('#logoutBtn').onclick = async () => { try { await heartbeat(false); } catch (_
 function openSettings() {
   const sw = (id, label, on) => `<label class="sw"><span>${label}</span><input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
   openModal(`<div class="card" id="setc">
-    <h3 style="margin:0 0 12px">تنظیمات</h3>
+    <div class="sethead"><button type="button" class="sback" id="sBack" aria-label="بازگشت">${icon('back')}</button><h3>تنظیمات</h3></div>
+    <div class="setme"><span>${uAv(me.id, false)}</span><div><b>${esc(prof(me.id).display_name)}</b><small dir="ltr">@${esc(prof(me.id).username || '')}</small></div></div>
     <div class="sec"><b>ظاهر</b>
       <div class="seg3" id="thSeg">${[['system', 'خودکار'], ['light', 'روشن'], ['dark', 'تاریک']].map(([v, t]) => `<button type="button" data-th="${v}" class="${settings.theme === v ? 'on' : ''}">${t}</button>`).join('')}</div>
       <b style="display:block;margin:10px 0 4px">🌐 Language</b>
@@ -1721,14 +1783,18 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۰)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۱)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
       ${sw('sType', 'نمایش «در حال نوشتن» من', settings.typing_indicator)}
       <div id="blkList"></div>
     </div>
-    <div class="sec"><b>ابزارها</b><div class="toolbtns"><button class="btn ghost" type="button" id="sBots">ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">اتاق تماشا</button><button class="btn ghost" type="button" id="sGuide">راهنما و دسترسی‌ها</button></div></div>
+    <div class="sec"><b>ابزارها</b><div class="srows">
+      <button class="srow" type="button" id="sBots"><i class="si" style="background:#3d8bff">${icon('chat')}</i><span>ربات‌ها (BotFather)</span></button>
+      <button class="srow" type="button" id="sRoom"><i class="si" style="background:#e5524f">${icon('video')}</i><span>اتاق تماشا</span></button>
+      <button class="srow" type="button" id="sGuide"><i class="si" style="background:#8a63e8">${icon('file')}</i><span>راهنما و دسترسی‌ها</span></button>
+    </div></div>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" type="button" id="sProf">ویرایش پروفایل</button><button class="btn" type="button" id="sClose">بستن</button></div>
     <button class="btn ghost danger" type="button" id="sDelAcc" style="margin-top:10px;width:100%">حذف حساب کاربری</button>
   </div>`);
@@ -1753,6 +1819,7 @@ function openSettings() {
     saveSettings({ notifications_enabled: e.target.checked });
   };
   $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'everyone' : 'nobody' });
+  { const sbk = $('#sBack'); if (sbk) sbk.onclick = closeModal; }
   $('#sVer').onchange = e => { SAFE(() => localStorage.setItem('kaftar_hidever', e.target.checked ? '' : '1')); applyVer(); };
   $('#sApx').onchange = async e => {
     const v = e.target.checked, { error } = await sb.from('profiles').update({ seen_approx: v }).eq('id', me.id);
@@ -1973,10 +2040,11 @@ function quickSwitch() {
 }
 document.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && me) { e.preventDefault(); quickSwitch(); } });
 function syncTabs() { $('#tChats').classList.toggle('on', tab === 'chats'); $('#tUsers').classList.toggle('on', tab === 'users'); $('#nvChats').classList.toggle('on', tab === 'chats'); $('#nvUsers').classList.toggle('on', tab === 'users'); renderSide(); }
+$('#fabNew').innerHTML = icon('plus'); $('#fabNew').onclick = () => $('#newGroup').click();
 $('#nvChats').onclick = () => { if (tab === 'chats') { const l = $('#list'); l.scrollTo({ top: 0, behavior: 'smooth' }); } tab = 'chats'; syncTabs(); };
 $('#nvUsers').onclick = () => { tab = 'users'; syncTabs(); };
 $('#nvSet').onclick = () => $('#setBtn').click();
-$('#nvMe').onclick = () => $('#meBtn').click();
+$('#nvMe').onclick = openMePage;
 $('#tgSearch').onclick = () => { const sd = $('#side'); sd.classList.toggle('searching'); if (sd.classList.contains('searching')) $('#gsearch').focus(); else { const g = $('#gsearch'); g.value = ''; g.dispatchEvent(new Event('input')); } };
 $('#tgMore').onclick = e => {
   const r = e.currentTarget.getBoundingClientRect();
