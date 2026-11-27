@@ -1174,6 +1174,13 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .mpcard>div{padding:12px 0}.mpcard b{display:block;font-size:17px;font-weight:500}.mpcard small{color:var(--ink-2)}
 .m{border-radius:18px;box-shadow:none}
 .m:not(.mine){background:var(--panel)}
+
+/* ===== v1.62 ===== */
+.spd{border:0;border-radius:999px;background:var(--panel-2);color:var(--ink);font-size:12px;padding:3px 9px;margin-inline-start:6px;font-weight:700}
+#lockOv{position:fixed;inset:0;z-index:99999;background:var(--bg);display:grid;place-items:center;padding:20px}
+#lockOv .lk{width:min(320px,100%);text-align:center;display:flex;flex-direction:column;gap:10px}
+#lockOv input{text-align:center;font-size:26px;letter-spacing:.4em;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.archrow .si{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
 </style>
 </head>
 <body>
@@ -1255,7 +1262,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
     <button type="button" id="fabNew" aria-label="جدید"></button>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۱" title="نسخه ۱٫۶۱">۱.۶۱</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۲" title="نسخه ۱٫۶۲">۱.۶۲</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1783,7 +1790,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۱)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۲)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1791,6 +1798,7 @@ function openSettings() {
       <div id="blkList"></div>
     </div>
     <div class="sec"><b>ابزارها</b><div class="srows">
+      <button class="srow" type="button" id="sLock"><i class="si" style="background:#3fae5a">${icon('user')}</i><span>قفل برنامه با رمز</span></button>
       <button class="srow" type="button" id="sBots"><i class="si" style="background:#3d8bff">${icon('chat')}</i><span>ربات‌ها (BotFather)</span></button>
       <button class="srow" type="button" id="sRoom"><i class="si" style="background:#e5524f">${icon('video')}</i><span>اتاق تماشا</span></button>
       <button class="srow" type="button" id="sGuide"><i class="si" style="background:#8a63e8">${icon('file')}</i><span>راهنما و دسترسی‌ها</span></button>
@@ -1819,6 +1827,7 @@ function openSettings() {
     saveSettings({ notifications_enabled: e.target.checked });
   };
   $('#sSeen').onchange = e => saveSettings({ last_seen_visibility: e.target.checked ? 'everyone' : 'nobody' });
+  $('#sLock').onclick = setupLock;
   { const sbk = $('#sBack'); if (sbk) sbk.onclick = closeModal; }
   $('#sVer').onchange = e => { SAFE(() => localStorage.setItem('kaftar_hidever', e.target.checked ? '' : '1')); applyVer(); };
   $('#sApx').onchange = async e => {
@@ -1943,6 +1952,7 @@ function renderChips() {
 }
 $('#chips').onclick = e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderChips(); renderSide(); };
 
+let showArch = false;
 let gq = '', gT;
 $('#gsearch').oninput = e => {
   gq = e.target.value.trim(); clearTimeout(gT);
@@ -1966,18 +1976,20 @@ function renderSide() {
   $('#chips').hidden = tab !== 'chats';
   if (gq.length >= 2) return;
   if (tab === 'chats') {
-    let cs = convs.filter(c => !(c.mine && c.mine.is_archived));
+    const archN = convs.filter(c => c.mine && c.mine.is_archived).length;
+    let cs = convs.filter(c => showArch ? !!(c.mine && c.mine.is_archived) : !(c.mine && c.mine.is_archived));
     if (filter === 'unread') cs = cs.filter(isUnread);
     if (filter === 'direct') cs = cs.filter(c => c.type === 'direct');
     if (filter === 'group') cs = cs.filter(c => c.type === 'group');
     if (filter === 'pinned') cs = cs.filter(c => c.mine && c.mine.is_pinned);
-    setListHtml(list, cs.length ? cs.map(c => {
+    const archRow = showArch ? '<button class="row archrow" data-arch="0" type="button"><i class="si" style="background:#6b7a8c">' + icon('back') + '</i><div class="rm"><div class="rt"><b>بازگشت به گفتگوها</b></div></div></button>' : (archN ? '<button class="row archrow" data-arch="1" type="button"><i class="si" style="background:#6b7a8c">' + icon('file') + '</i><div class="rm"><div class="rt"><b>گفتگوهای بایگانی‌شده</b></div></div><i class="badge mute">' + archN + '</i></button>' : '');
+    setListHtml(list, archRow + (cs.length ? cs.map(c => {
       const t = convTitle(c), online = c.type === 'direct' && isOnline(prof(otherId(c))), n = unreadCount(c);
       const ty = typingMap[c.id] && Date.now() < typingMap[c.id].until;
       return `<button class="row ${c.id === activeId ? 'on' : ''}" data-conv="${c.id}" type="button">
         ${cAv(c, online)}<div class="rm"><div class="rt"><b>${esc(t)}${isMuted(c) ? ' 🔕' : ''}</b><time>${fmtTime(c.last?.created_at || c.created_at)}</time></div><div class="rp ${ty ? 'typing' : ''}">${esc(previewOf(c))}</div></div>
         ${c.mine && c.mine.is_pinned ? '<i class="pinned">📌</i>' : ''}${n ? `<i class="badge ${isMuted(c) ? 'mute' : ''}">${n > 99 ? '99+' : n}</i>` : ''}</button>`;
-    }).join('') : '<p class="hint">' + (convs.length ? 'گفتگویی با این فیلتر نیست.' : 'هنوز گفتگویی ندارید. از تب «افراد» یک نفر را انتخاب کنید.') + '</p>');
+    }).join('') : '<p class="hint">' + (convs.length ? 'گفتگویی با این فیلتر نیست.' : 'هنوز گفتگویی ندارید. از تب «افراد» یک نفر را انتخاب کنید.') + '</p>'));
   } else {
     const others = Object.values(profiles).filter(p => p.id !== me.id);
     setListHtml(list, others.length ? others.map(p => `<button class="row" data-user="${p.id}" type="button">
@@ -1986,6 +1998,7 @@ function renderSide() {
   }
 }
 $('#list').addEventListener('click', async e => {
+  const ar = e.target.closest('[data-arch]'); if (ar) { showArch = ar.dataset.arch === '1'; renderSide(); return; }
   const c = e.target.closest('[data-conv]'), u = e.target.closest('[data-user]');
   if (c) { const j = c.dataset.jump; await openConv(c.dataset.conv); if (j) jumpTo(j); }
   if (u) openUser(u.dataset.user);
@@ -2017,6 +2030,7 @@ function chatRowMenu(id, x, y) {
     [c.mine && c.mine.is_pinned ? '📌 برداشتن سنجاق' : '📌 سنجاق کردن گفتگو', async () => { await sb.from('conversation_members').update({ is_pinned: !(c.mine && c.mine.is_pinned) }).eq('conversation_id', id).eq('user_id', me.id); refreshConvs(); }],
     isMuted(c) ? ['فعال کردن اعلان', () => setM(null)] : ['بی‌صدا (۸ ساعت)', () => setM(new Date(Date.now() + 8 * 3600e3).toISOString())],
     ...(isMuted(c) ? [] : [['بی‌صدا (همیشه)', () => setM('2099-01-01T00:00:00Z')]]),
+    [c.mine && c.mine.is_archived ? 'خارج کردن از بایگانی' : 'بایگانی', async () => { await sb.from('conversation_members').update({ is_archived: !(c.mine && c.mine.is_archived) }).eq('conversation_id', id).eq('user_id', me.id); if (showArch && !convs.some(v => v.id !== id && v.mine && v.mine.is_archived)) showArch = false; await refreshConvs(); toast('انجام شد'); }],
     ['علامت خوانده', async () => { await sb.rpc('mark_read', { conv: id }); refreshConvs(); }],
     ['حذف گفتگو (فقط برای من)', async () => {
       if (!confirm('این گفتگو از لیست شما پاک شود؟ (برای طرف مقابل باقی می‌ماند)')) return;
@@ -2048,7 +2062,7 @@ $('#nvMe').onclick = openMePage;
 $('#tgSearch').onclick = () => { const sd = $('#side'); sd.classList.toggle('searching'); if (sd.classList.contains('searching')) $('#gsearch').focus(); else { const g = $('#gsearch'); g.value = ''; g.dispatchEvent(new Event('input')); } };
 $('#tgMore').onclick = e => {
   const r = e.currentTarget.getBoundingClientRect();
-  showCtx(r.left, r.bottom + 4, null, [['گروه جدید', () => $('#newGroup').click()], ['ذخیره‌شده‌ها', () => $('#starBtn').click()], ['تمام‌صفحه', () => $('#fsBtn').click()], ['خروج', () => $('#logoutBtn').click()]]);
+  showCtx(r.left, r.bottom + 4, null, [['علامت‌گذاری همه به‌عنوان خوانده', async () => { for (const c of convs.filter(isUnread)) await sb.rpc('mark_read', { conv: c.id }); refreshConvs(); toast('همه خوانده شد'); }], ['گروه جدید', () => $('#newGroup').click()], ['ذخیره‌شده‌ها', () => $('#starBtn').click()], ['تمام‌صفحه', () => $('#fsBtn').click()], ['خروج', () => $('#logoutBtn').click()]]);
 };
 $('#tChats').onclick = () => { tab = 'chats'; syncTabs(); };
 $('#tUsers').onclick = () => { tab = 'users'; syncTabs(); };
@@ -4712,6 +4726,41 @@ async function leaveRoom() {
 
 setInterval(() => { if (activeId && !document.hidden) renderRoomBar(); }, 20000);
 
+const LSF = (f, d) => { try { return f(); } catch (_) { return d; } };
+/* ---------- voice playback speed ---------- */
+document.addEventListener('play', e => {
+  const a = e.target; if (!a || a.tagName !== 'AUDIO' || a.hidden) return;
+  a.playbackRate = parseFloat(LSF(() => localStorage.getItem('kaftar_rate'), '1')) || 1;
+  if (!a.nextElementSibling || !a.nextElementSibling.classList.contains('spd')) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'spd'; b.textContent = a.playbackRate + '×';
+    b.onclick = ev => { ev.stopPropagation(); const r = a.playbackRate >= 2 ? 1 : a.playbackRate >= 1.5 ? 2 : 1.5; a.playbackRate = r; LSF(() => localStorage.setItem('kaftar_rate', String(r))); document.querySelectorAll('.spd').forEach(x => x.textContent = r + '×'); };
+    a.after(b);
+  }
+}, true);
+
+/* ---------- app lock (passcode) ---------- */
+const LOCKK = 'kaftar_lock';
+const lockHash = async pin => { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('kk|' + pin)); return [...new Uint8Array(d)].map(x => x.toString(16).padStart(2, '0')).join(''); };
+const lockOn = () => !!LSF(() => localStorage.getItem(LOCKK), '');
+let lockedAt = 0;
+function showLock() {
+  if (!lockOn() || $('#lockOv')) return;
+  const o = document.createElement('div'); o.id = 'lockOv';
+  o.innerHTML = '<div class="lk"><h3>قفل برنامه</h3><p>رمز را وارد کنید</p><input id="lkIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off" dir="ltr"><div class="err" id="lkErr"></div><button class="btn block" id="lkBtn" type="button">باز کردن</button></div>';
+  document.body.appendChild(o);
+  const go = async () => { const h = await lockHash($('#lkIn').value); if (h === LSF(() => localStorage.getItem(LOCKK), '')) o.remove(); else { $('#lkErr').textContent = 'رمز اشتباه است'; $('#lkIn').value = ''; } };
+  $('#lkBtn').onclick = go; $('#lkIn').onkeydown = e => { if (e.key === 'Enter') go(); }; setTimeout(() => $('#lkIn').focus(), 50);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) lockedAt = Date.now(); else if (lockOn() && Date.now() - lockedAt > 30000) showLock(); });
+showLock();
+async function setupLock() {
+  if (lockOn()) { if (confirm('قفل برنامه برداشته شود؟')) { LSF(() => localStorage.removeItem(LOCKK)); toast('قفل برداشته شد'); } return; }
+  const pin = prompt('یک رمز عددی ۴ تا ۸ رقمی انتخاب کنید:'); if (!pin) return;
+  if (!/^\d{4,8}$/.test(pin)) return toast('رمز باید ۴ تا ۸ رقم باشد');
+  if (prompt('رمز را دوباره وارد کنید:') !== pin) return toast('رمزها یکسان نیست');
+  LSF(() => localStorage.setItem(LOCKK, '')); const h = await lockHash(pin); LSF(() => localStorage.setItem(LOCKK, h)); toast('قفل فعال شد');
+}
+
 })();
 
 try{if((navigator.connection&&navigator.connection.saveData)||(navigator.deviceMemory&&navigator.deviceMemory<=2))document.documentElement.classList.add('lowfx')}catch(_){}
@@ -4773,7 +4822,9 @@ if (window.__LANG === 'en') (async () => {
     window.__T = T;
   } catch (e) { console.warn('translation failed', e); }
   done();
+
 })();
+
 </script>
 </body>
 </html>
