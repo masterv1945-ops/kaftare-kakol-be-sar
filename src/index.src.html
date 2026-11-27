@@ -1086,6 +1086,21 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 #tgNav .nb{position:absolute;top:2px;inset-inline-start:calc(50% + 4px);min-width:21px;height:21px;padding:0 6px;border-radius:11px;background:var(--eye);color:#fff;font-style:normal;font-size:12px;font-weight:700;display:grid;place-items:center;border:2px solid var(--panel-2)}
 .nst{color:inherit;font-weight:700}
 @media (max-width:760px){.vorb{bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}}
+
+/* ===== v1.54: chat bg follows theme, proper switches, version on Profile ===== */
+#tgNav .nver{position:absolute;top:2px;left:50%;margin-left:8px;font-style:normal;font-size:9.5px;font-weight:700;line-height:1;padding:2px 5px;border-radius:999px;background:var(--accent);color:var(--accent-ink);direction:ltr;pointer-events:none;opacity:.9}
+#tgNav .nver[hidden]{display:none}
+#msgs{background-color:var(--bg)}
+:root[data-wall] #msgs{background-blend-mode:normal}
+@media (prefers-color-scheme:dark){:root[data-wall]:not([data-theme=light]) #msgs{background-image:linear-gradient(rgba(8,14,26,.88),rgba(8,14,26,.88)),var(--wall)!important;background-size:100% 100%,cover!important}}
+:root[data-theme=dark][data-wall] #msgs{background-image:linear-gradient(rgba(8,14,26,.88),rgba(8,14,26,.88)),var(--wall)!important;background-size:100% 100%,cover!important}
+.day{background:color-mix(in oklab,var(--panel) 90%,transparent)!important;color:var(--ink-2)!important}
+.sw{gap:12px;cursor:pointer}
+.sw input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:42px!important;height:24px!important;min-width:42px;padding:0!important;margin:0;border:0!important;border-radius:999px;background:var(--line);position:relative;cursor:pointer;box-shadow:none!important;transition:background .2s}
+.sw input[type=checkbox]::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw input[type=checkbox]:checked{background:var(--accent)}
+.sw input[type=checkbox]:checked::after{transform:translateX(18px)}
+[dir=rtl] .sw input[type=checkbox]:checked::after,html[dir=rtl] .sw input[type=checkbox]:checked::after{transform:translateX(-18px)}
 </style>
 </head>
 <body>
@@ -1105,7 +1120,6 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
  <clipPath id="pgCNeck"><path d="M258 198C272 176 280 162 282 150L324 158C324 186 314 216 296 240C276 244 262 224 258 198Z"/></clipPath>
 </defs><symbol id="pigeon" viewBox="0 -20 400 400"><image href="logo-kaftar.png" x="10" y="-10" width="380" height="380"/></symbol></svg>
 <!-- ============ auth ============ -->
-<div class="vorb" aria-label="نسخه ۱٫۵۳" title="نسخه ۱٫۵۳">۱.۵۳</div>
 <div id="splash" aria-hidden="true"><svg class="pigeon" viewBox="0 -20 400 400"><use href="#pigeon"/></svg><b>کفتر کاکل به سر</b><i></i></div>
 <section id="auth" hidden>
   <div class="card">
@@ -1167,7 +1181,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     </div>
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۵۴" title="نسخه ۱٫۵۴">۱.۵۴</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1489,6 +1503,7 @@ function applyUi() {
   } else ['--accent', '--own', '--accent-ink', '--own-ink', '--sheen'].forEach(k => r.style.removeProperty(k));
   document.body.style.fontSize = (ui.font || 15) + 'px';
   const w = ui.wall;
+  if (w) r.dataset.wall = '1'; else delete r.dataset.wall;
   if (w) { r.style.setProperty('--wall', w.startsWith('data:') ? 'url("' + w + '")' : w); r.style.setProperty('--wallsize', 'cover'); } else { r.style.removeProperty('--wall'); r.style.removeProperty('--wallsize'); }
 }
 async function loadSettings() {
@@ -1675,7 +1690,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۳)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۴)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -1806,7 +1821,7 @@ const getDraft = id => SAFE(() => localStorage.getItem(draftKey(id)) || '', '');
 const setDraft = (id, v) => SAFE(() => { v ? localStorage.setItem(draftKey(id), v) : localStorage.removeItem(draftKey(id)); });
 document.addEventListener('input', e => { if (e.target && e.target.id === 'txt' && activeId && !editing) setDraft(activeId, e.target.value.trim() ? e.target.value : ''); });
 const hideVer = () => SAFE(() => localStorage.getItem('kaftar_hidever') === '1', false);
-const applyVer = () => { const v = document.querySelector('.vorb'); if (v) v.hidden = hideVer(); };
+const applyVer = () => { const v = document.querySelector('.nver'); if (v) v.hidden = hideVer(); };
 applyVer();
 function previewOf(c) {
   if (c.id !== activeId) { const d = getDraft(c.id); if (d) return '✏️ پیش‌نویس: ' + d.slice(0, 60); }
