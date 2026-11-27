@@ -1262,7 +1262,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
     <button type="button" id="fabNew" aria-label="جدید"></button>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۴" title="نسخه ۱٫۶۴">۱.۶۴</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۵" title="نسخه ۱٫۶۵">۱.۶۵</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1794,7 +1794,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۴)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۵)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -2066,7 +2066,7 @@ $('#nvMe').onclick = openMePage;
 $('#tgSearch').onclick = () => { const sd = $('#side'); sd.classList.toggle('searching'); if (sd.classList.contains('searching')) $('#gsearch').focus(); else { const g = $('#gsearch'); g.value = ''; g.dispatchEvent(new Event('input')); } };
 $('#tgMore').onclick = e => {
   const r = e.currentTarget.getBoundingClientRect();
-  showCtx(r.left, r.bottom + 4, null, [['علامت‌گذاری همه به‌عنوان خوانده', async () => { for (const c of convs.filter(isUnread)) await sb.rpc('mark_read', { conv: c.id }); refreshConvs(); toast('همه خوانده شد'); }], ['گروه جدید', () => $('#newGroup').click()], ['ذخیره‌شده‌ها', () => $('#starBtn').click()], ['تمام‌صفحه', () => $('#fsBtn').click()], ['خروج', () => $('#logoutBtn').click()]]);
+  showCtx(r.left, r.bottom + 4, null, [['علامت‌گذاری همه به‌عنوان خوانده', async () => { for (const c of convs.filter(isUnread)) await sb.rpc('mark_read', { conv: c.id }); refreshConvs(); toast('همه خوانده شد'); }], ['گروه جدید', () => $('#newGroup').click()], ['ذخیره‌شده‌ها', () => $('#starBtn').click()], [isFs() ? 'خروج از تمام‌صفحه' : 'تمام‌صفحه', () => toggleFs()], ['خروج', () => $('#logoutBtn').click()]]);
 };
 $('#tChats').onclick = () => { tab = 'chats'; syncTabs(); };
 $('#tUsers').onclick = () => { tab = 'users'; syncTabs(); };
