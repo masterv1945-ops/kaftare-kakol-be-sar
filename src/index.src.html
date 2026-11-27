@@ -877,7 +877,7 @@ label.pw input{padding-right:46px}
 .cb.sm svg{width:20px;height:20px}
 #callui.mini{inset:auto;left:12px;right:auto;top:auto;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:156px;height:208px;border-radius:20px;overflow:hidden;z-index:95;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 14px 40px rgba(0,0,0,.55),0 0 0 1.5px rgba(255,255,255,.18);animation:none}
 #callui.mini.snap{transition:left .25s var(--ease),top .25s var(--ease)}
-#callui.mini #btnFlip,#callui.mini #btnSpk,#callui.mini #spkPop,#callui.mini #calltop,#callui.mini #diag,#callui.mini #gtop,#callui.mini .tile .tn,#callui.mini #btnCam,#callui.mini #btnShare{display:none!important}
+#callui.mini #btnFlip,#callui.mini #btnSpk,#callui.mini #btnEar,#callui.mini #spkPop,#callui.mini #calltop,#callui.mini #diag,#callui.mini #gtop,#callui.mini .tile .tn,#callui.mini #btnCam,#callui.mini #btnShare{display:none!important}
 #callui.mini #tiles{display:block;padding:0}
 #callui.mini .tile{position:absolute;inset:0;border-radius:0;box-shadow:none;animation:none}
 #callui.mini .tile.me{display:none}
@@ -1037,7 +1037,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .spv{display:flex;align-items:center;gap:10px;direction:ltr}.spv .i{width:22px;height:22px;flex:none}.spv input{flex:1;accent-color:var(--accent,#2ec4b6)}.spv b{min-width:44px;text-align:end;font-size:13px;direction:rtl}
 #spkOut{display:flex;flex-direction:column;gap:6px;margin-top:8px}#spkOut button{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.1);color:#fff;text-align:start;font-size:14px}#spkOut button.on{background:var(--accent,#2ec4b6);color:var(--accent-ink,#fff)}
 #spkPop .hint{margin:8px 2px 0;font-size:12px;opacity:.75;color:#fff}
-#btnSpk.on{background:var(--accent);color:var(--accent-ink)}
+#btnEar.on,#btnSpk.on{background:var(--accent);color:var(--accent-ink)}
 @media (max-width:400px){.cb{width:46px!important;height:46px!important}#callbar{gap:6px!important;padding:8px 8px!important}}
 .nst{color:var(--accent,#2ec4b6);font-weight:600}
 .nst::after{content:'';display:inline-block;width:1.2em;text-align:start;animation:ndots 1.2s steps(1) infinite}
@@ -1262,7 +1262,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
     <button type="button" id="fabNew" aria-label="جدید"></button>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۳" title="نسخه ۱٫۶۳">۱.۶۳</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۶۴" title="نسخه ۱٫۶۴">۱.۶۴</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1293,6 +1293,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     <button class="cb" id="btnCam" type="button" aria-label="دوربین"></button>
     <button class="cb" id="btnFlip" type="button" aria-label="برگرداندن دوربین" hidden></button>
     <button class="cb" id="btnSpk" type="button" aria-label="صدا و بلندگو"></button>
+    <button class="cb" id="btnEar" type="button" aria-label="سوئیچ بلندگو و گوشی"></button>
     <button class="cb" id="btnShare" type="button" aria-label="اشتراک صفحه" hidden></button>
     <button class="cb hang" id="btnHang" type="button" aria-label="قطع تماس"></button>
   </div>
@@ -1659,7 +1660,7 @@ async function boot(user) {
   $('#btnMute').innerHTML = icon('mic');
   $('#btnCam').innerHTML = icon('video');
   $('#btnFlip').innerHTML = icon('flip');
-  $('#btnSpk').innerHTML = icon('speaker'); $('#spkIc').innerHTML = icon('speaker');
+  $('#btnEar').innerHTML = icon('phone'); $('#btnSpk').innerHTML = icon('speaker'); $('#spkIc').innerHTML = icon('speaker');
   $('#btnHang').innerHTML = icon('phone');
   $('#incNo').innerHTML = icon('phone');
   $('#incYes').innerHTML = icon('phone');
@@ -1793,7 +1794,7 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۳)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۶۴)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
@@ -4112,6 +4113,22 @@ async function renderSpk() {
 }
 const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
 $('#btnSpk').onclick = e => { e.stopPropagation(); const p = $('#spkPop'); p.hidden = !p.hidden; $('#btnSpk').classList.toggle('on', !p.hidden); if (!p.hidden) renderSpk(); };
+
+/* earpiece <-> loudspeaker switch */
+async function outDevices() { try { if (HTMLMediaElement.prototype.setSinkId) return (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audiooutput'); } catch (_) {} return []; }
+async function setEarMode(ear) {
+  if (!call) return; call.ear = ear;
+  const outs = await outDevices();
+  const earD = outs.find(d => /earpiece|receiver|handset|phone|گوشی/i.test(d.label) && !/speaker/i.test(d.label));
+  const spkD = outs.find(d => /speaker|بلندگو/i.test(d.label)) || outs.find(d => d.deviceId === 'default');
+  const real = !!(earD && spkD);
+  if (real) { call.sink = (ear ? earD : spkD).deviceId; }
+  else { try { localStorage.setItem('kaftar_vol', ear ? '0.3' : '1'); } catch (_) {} $('#spkVol').value = ear ? 30 : 100; $('#spkPct').textContent = fa(ear ? 30 : 100) + '٪'; }
+  applyAllVol();
+  const b = $('#btnEar'); b.classList.toggle('on', ear);
+  toast(ear ? (real ? 'صدا از گوشی پخش می‌شود' : 'حالت گوشی: صدا آهسته شد (مرورگر سوئیچ واقعی را اجازه نمی‌دهد)') : 'صدا از بلندگو پخش می‌شود');
+}
+$('#btnEar').onclick = () => setEarMode(!(call && call.ear));
 $('#spkPop').addEventListener('click', e => e.stopPropagation());
 $('#spkVol').oninput = e => { const v = +e.target.value / 100; try { localStorage.setItem('kaftar_vol', String(v)); } catch (_) {} $('#spkPct').textContent = fa(e.target.value) + '٪'; applyAllVol(); };
 document.addEventListener('pointerdown', e => { const p = $('#spkPop'); if (p && !p.hidden && !e.target.closest('#spkPop,#btnSpk')) { p.hidden = true; $('#btnSpk').classList.remove('on'); } }, true);
