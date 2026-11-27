@@ -1101,6 +1101,11 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
 .sw input[type=checkbox]:checked{background:var(--accent)}
 .sw input[type=checkbox]:checked::after{transform:translateX(18px)}
 [dir=rtl] .sw input[type=checkbox]:checked::after,html[dir=rtl] .sw input[type=checkbox]:checked::after{transform:translateX(-18px)}
+
+/* ===== v1.55: tool buttons spacing, message dots on media ===== */
+.toolbtns{display:flex;flex-direction:column;gap:8px;margin-top:8px}.toolbtns .btn{width:100%}
+.toolbtns .btn{margin:0}
+.m:has(img,video,canvas) .mm{top:6px;inset-inline-end:8px;opacity:.9!important;background:rgba(0,0,0,.5);color:#fff;border-radius:999px;padding:3px 7px;backdrop-filter:blur(4px);z-index:2}
 </style>
 </head>
 <body>
@@ -1181,7 +1186,7 @@ body,#side,.chat-h,.composer,.m,.row{transition-property:background-color,border
     </div>
     <div id="list"><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div><div class="row sk"><span class="av"></span><div class="rm"><b></b><small></small></div></div></div>
     <div class="side-f"><button class="btn ghost block" id="newGroup" type="button"></button></div>
-    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۵۴" title="نسخه ۱٫۵۴">۱.۵۴</i></button></nav>
+    <nav id="tgNav" aria-label="ناوبری"><button type="button" id="nvChats" class="on"><span class="ni"></span><span class="nl">گفتگوها</span><i class="nb" id="nvBadge" hidden></i></button><button type="button" id="nvUsers"><span class="ni"></span><span class="nl">افراد</span></button><button type="button" id="nvSet"><span class="ni"></span><span class="nl">تنظیمات</span></button><button type="button" id="nvMe"><span class="ni"></span><span class="nl">پروفایل</span><i class="nver" aria-label="نسخه ۱٫۵۵" title="نسخه ۱٫۵۵">۱.۵۵</i></button></nav>
   </aside>
   <main id="main"></main>
 </div>
@@ -1690,14 +1695,14 @@ function openSettings() {
     </div>
     <div class="sec"><b>حریم خصوصی</b>
       ${sw('sSeen', 'نمایش آخرین بازدید من', settings.last_seen_visibility !== 'nobody')}
-      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۴)', !hideVer())}
+      ${sw('sVer', 'نمایش نشان نسخه (۱.۵۵)', !hideVer())}
       ${sw('sApx', 'آخرین بازدید تقریبی (متقابل)', !!(profiles[me.id] && profiles[me.id].seen_approx))}
       <p class="sub" style="font-size:11.5px;margin:-2px 0 6px">با روشن بودنش دیگران فقط «اخیراً / این هفته / این ماه» می‌بینند؛ شما هم زمان دقیق آنلاین‌بودن دیگران را نمی‌بینید.</p>
       ${sw('sRead', 'نمایش تیک خوانده‌شدن', settings.read_receipts)}
       ${sw('sType', 'نمایش «در حال نوشتن» من', settings.typing_indicator)}
       <div id="blkList"></div>
     </div>
-    <div class="sec"><b>ابزارها</b><button class="btn ghost" type="button" id="sBots">🤖 ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">🎬 اتاق تماشا</button> <button class="btn ghost" type="button" id="sGuide">📖 راهنما و دسترسی‌ها</button></div>
+    <div class="sec"><b>ابزارها</b><div class="toolbtns"><button class="btn ghost" type="button" id="sBots">🤖 ربات‌ها (BotFather)</button> <button class="btn ghost" type="button" id="sRoom">🎬 اتاق تماشا</button><button class="btn ghost" type="button" id="sGuide">📖 راهنما و دسترسی‌ها</button></div></div>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn ghost" type="button" id="sProf">ویرایش پروفایل</button><button class="btn" type="button" id="sClose">بستن</button></div>
     <button class="btn ghost danger" type="button" id="sDelAcc" style="margin-top:10px;width:100%">🗑 حذف حساب کاربری</button>
   </div>`);
